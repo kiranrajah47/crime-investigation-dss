@@ -1,0 +1,4 @@
+/* App.css — intentionally empty.
+ * All styles for this project live in src/index.css (Tailwind + custom utilities).
+ * This file is kept to avoid a broken import in App.jsx.
+ */

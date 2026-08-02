@@ -1,0 +1,12 @@
+flask
+flask-sqlalchemy
+flask-login
+werkzeug
+nltk
+scikit-learn
+numpy
+python-docx
+spacy
+PyMuPDF
+reportlab
+flask-cors
