@@ -59,6 +59,17 @@ export const deleteUser = async (userId) => {
 // ── Case management ──────────────────────────────────────────────────────────
 
 /**
+ * Fetch all cases in the system (admin only) with pagination.
+ * @param {number} [page=1]
+ * @param {number} [perPage=10]
+ * @returns {Promise<{cases: Array, total: number, page: number, total_pages: number}>}
+ */
+export const getAllCases = async (page = 1, perPage = 10) => {
+  const response = await axios.get(`${BASE}/cases`, { params: { page, per_page: perPage } });
+  return response.data;
+};
+
+/**
  * Permanently delete a case record (admin only).
  * @param {number} caseId - The database ID of the case
  * @returns {Promise<{success: boolean, message: string}>}

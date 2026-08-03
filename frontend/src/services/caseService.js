@@ -34,10 +34,12 @@ export const analyzeCase = async (formData, onUploadProgress) => {
 /**
  * Fetch case history for the current user.
  * Admins receive all cases; investigators receive only their own.
- * @returns {Promise<Array>} Array of case summary objects
+ * @param {number} [page=1]
+ * @param {number} [perPage=10]
+ * @returns {Promise<{cases: Array, total: number, page: number, total_pages: number}>}
  */
-export const getCaseHistory = async () => {
-  const response = await axios.get(`${BASE}/cases/history`);
+export const getCaseHistory = async (page = 1, perPage = 10) => {
+  const response = await axios.get(`${BASE}/cases/history`, { params: { page, per_page: perPage } });
   return response.data;
 };
 
@@ -67,3 +69,13 @@ export const getDashboardStats = async () => {
  * @returns {string} URL string
  */
 export const getPdfExportUrl = (caseDbId) => `/export/${caseDbId}`;
+
+/**
+ * Fetch optional Sentence-BERT similarity comparison for a case.
+ * @param {number|string} caseDbId
+ * @returns {Promise<Array<{name: string, tfidf_score: number, sbert_score: number}>>}
+ */
+export const getSbertComparison = async (caseDbId) => {
+  const response = await axios.get(`${BASE}/cases/${caseDbId}/sbert-comparison`);
+  return response.data;
+};

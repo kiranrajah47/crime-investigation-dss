@@ -8,7 +8,7 @@ const Layout = ({ children, title = '', actions = null }) => {
   const { flash } = useAuth();
 
   return (
-    <div className="min-h-screen bg-slate-50 flex w-full">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex w-full">
       {/* Sidebar navigation */}
       <Sidebar />
 
@@ -23,10 +23,10 @@ const Layout = ({ children, title = '', actions = null }) => {
             <div
               className={`flex items-start gap-3 border rounded-xl px-4 py-3 text-sm shadow-sm fade-in ${
                 flash.type === 'success'
-                  ? 'bg-green-50 border-green-200 text-green-700'
+                  ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700 text-green-700 dark:text-green-300'
                   : flash.type === 'info'
-                  ? 'bg-sky-50 border-sky-200 text-sky-700'
-                  : 'bg-red-50 border-red-200 text-red-700'
+                  ? 'bg-sky-50 dark:bg-sky-900/30 border-sky-200 dark:border-sky-700 text-sky-700 dark:text-sky-300'
+                  : 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700 text-red-700 dark:text-red-300'
               }`}
             >
               {flash.type === 'success' ? (
@@ -44,8 +44,8 @@ const Layout = ({ children, title = '', actions = null }) => {
         {/* Main nested page content */}
         <main className="p-8 flex-1 flex flex-col">
           {children}
-          <footer className="mt-auto pt-8 pb-4 px-2 border-t border-slate-100 mt-6">
-            <div className="flex flex-wrap justify-between items-center gap-2 text-[10px] text-slate-400">
+          <footer className="mt-auto pt-8 pb-4 px-2 border-t border-slate-100 dark:border-slate-700 mt-6">
+            <div className="flex flex-wrap justify-between items-center gap-2 text-[10px] text-slate-400 dark:text-slate-500">
               <span>Crime Investigation DSS — VTU Project 2026-27</span>
               <span>St. Joseph Engineering College, Mangaluru</span>
               <span>Decision support only. All leads must be independently verified.</span>

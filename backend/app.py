@@ -24,21 +24,29 @@ from datetime import datetime
 from flask import Flask, send_from_directory, request, redirect, url_for, flash, Blueprint
 from flask_login import LoginManager, login_required, current_user
 from flask_cors import CORS
-from backend.models import db, User, Case
-from backend.auth import auth
-from backend.admin import admin_bp
-from backend.api import api_bp
-from backend.ranker import build_full_report
+from models import db, User, Case
+from auth import auth
+from admin import admin_bp
+from api import api_bp
+from ranker import build_full_report
 
 # ── App setup ──────────────────────────────────────────────────────────────────
 
-app = Flask(__name__, static_folder="frontend/dist/assets", static_url_path="/assets")
+# BASE_DIR = backend/  |  PROJECT_ROOT = crime-investigation-dss/
+BASE_DIR     = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(BASE_DIR)
+FRONTEND_DIST = os.path.join(PROJECT_ROOT, "frontend", "dist")
+
+app = Flask(
+    __name__,
+    static_folder=os.path.join(FRONTEND_DIST, "assets"),
+    static_url_path="/assets",
+)
 CORS(app, supports_credentials=True, origins=["http://localhost:5173", "http://127.0.0.1:5173"])
 
 
-app.secret_key = "crime_dss_secret_key_2024_secure"
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-only-fallback-key-change-in-production")
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{os.path.join(BASE_DIR, 'crime_dss.db')}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -126,9 +134,9 @@ def export_pdf(case_db_id):
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def serve_react(path):
-    if path and os.path.exists(os.path.join("frontend/dist", path)):
-        return send_from_directory("frontend/dist", path)
-    return send_from_directory("frontend/dist", "index.html")
+    if path and os.path.exists(os.path.join(FRONTEND_DIST, path)):
+        return send_from_directory(FRONTEND_DIST, path)
+    return send_from_directory(FRONTEND_DIST, "index.html")
 
 
 # ── Database init ──────────────────────────────────────────────────────────────

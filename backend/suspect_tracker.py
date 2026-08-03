@@ -4,7 +4,7 @@ suspect_tracker.py
 Utility module to track repeat suspects across multiple cases.
 """
 
-from backend.models import Case
+from models import Case
 
 
 def _normalize_name(name: str) -> str:

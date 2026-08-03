@@ -35,8 +35,8 @@ const Login = () => {
 
   if (loading || (isAuthenticated && !errorMsg)) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-10 h-10 rounded-full border-4 border-slate-200 border-t-blue-600 spinner"></div>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full border-4 border-slate-200 dark:border-slate-700 border-t-blue-600 spinner"></div>
       </div>
     );
   }
@@ -91,22 +91,22 @@ const Login = () => {
       </div>
 
       {/* Right login form */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12 bg-slate-50">
+      <div className="flex-1 flex items-center justify-center px-6 py-12 bg-slate-50 dark:bg-slate-900">
         <div className="w-full max-w-md">
           {/* Mobile brand header */}
           <div className="lg:hidden text-center mb-8">
             <div className="w-12 h-12 gradient-brand rounded-xl flex items-center justify-center text-white font-bold mx-auto mb-3">
               CI
             </div>
-            <h1 className="text-xl font-bold text-slate-800">Crime Investigation DSS</h1>
+            <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">Crime Investigation DSS</h1>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200/80 p-8 text-left">
-            <h2 className="text-2xl font-bold text-slate-900 mb-1">Welcome back</h2>
-            <p className="text-slate-500 text-sm mb-7">Sign in to access the investigation system.</p>
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-700 p-8 text-left">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Welcome back</h2>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-7">Sign in to access the investigation system.</p>
 
             {errorMsg && (
-              <div className="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm mb-5 shadow-sm">
+              <div className="flex items-start gap-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 rounded-xl px-4 py-3 text-sm mb-5 shadow-sm">
                 <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                 <div>{errorMsg}</div>
               </div>
@@ -114,7 +114,7 @@ const Login = () => {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label htmlFor="username" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                <label htmlFor="username" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                   Username
                 </label>
                 <input
@@ -127,12 +127,12 @@ const Login = () => {
                   placeholder="Enter your username"
                   required
                   autoFocus
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 transition-all duration-200 outline-none"
+                  className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 transition-all duration-200 outline-none"
                 />
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                <label htmlFor="password" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                   Password
                 </label>
                 <input
@@ -144,7 +144,7 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   required
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 transition-all duration-200 outline-none"
+                  className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 transition-all duration-200 outline-none"
                 />
               </div>
 
@@ -156,7 +156,7 @@ const Login = () => {
                   onChange={(e) => setRemember(e.target.checked)}
                   className="w-4 h-4 accent-blue-600 rounded cursor-pointer"
                 />
-                <label htmlFor="remember" className="text-sm text-slate-500 select-none cursor-pointer">
+                <label htmlFor="remember" className="text-sm text-slate-500 dark:text-slate-400 select-none cursor-pointer">
                   Keep me signed in
                 </label>
               </div>
@@ -170,7 +170,7 @@ const Login = () => {
               </button>
             </form>
 
-            <p className="text-center text-xs text-slate-400 mt-6 leading-relaxed">
+            <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-6 leading-relaxed">
               Unauthorized access to this system is strictly prohibited.<br />
               All activity is logged and monitored.
             </p>

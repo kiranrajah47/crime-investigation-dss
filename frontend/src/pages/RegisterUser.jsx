@@ -78,75 +78,75 @@ const RegisterUser = () => {
         </div>
 
         {/* Form card */}
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden text-left">
-          <div className="px-6 py-5 border-b border-slate-100">
-            <h3 className="text-sm font-semibold text-slate-800">Account details</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Fill in all fields below to register the new user.</p>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden text-left">
+          <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800">
+            <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Account details</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Fill in all fields below to register the new user.</p>
           </div>
 
           <div className="px-6 py-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Full name</label>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Full name</label>
                 <input
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="e.g. Inspector Ramesh Kumar"
                   required
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 transition-all outline-none"
+                  className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 transition-all outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Username</label>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Username</label>
                   <input
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value.replace(/\s+/g, ''))}
                     placeholder="e.g. ramesh_kumar"
                     required
-                    className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 transition-all outline-none"
+                    className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 transition-all outline-none"
                   />
-                  <p className="text-xs text-slate-400 mt-1">No spaces. Used for login.</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">No spaces. Used for login.</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Role</label>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Role</label>
                   <select
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm text-slate-700 bg-white focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 transition-all outline-none cursor-pointer"
+                    className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl text-sm text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 transition-all outline-none cursor-pointer"
                   >
                     <option value="investigator">Investigator</option>
                     <option value="admin">Admin</option>
                   </select>
-                  <p className="text-xs text-slate-400 mt-1">Admins can manage users.</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Admins can manage users.</p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Email</label>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Email</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="e.g. ramesh@police.gov.in"
                   required
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 transition-all outline-none"
+                  className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 transition-all outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Password</label>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Password</label>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Minimum 6 characters"
                   required
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 transition-all outline-none"
+                  className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 transition-all outline-none"
                 />
               </div>
 

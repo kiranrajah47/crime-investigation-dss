@@ -17,8 +17,8 @@ Functions:
                       evidence_text)            -> final report list for Flask
 """
 
-from backend.scoring import score_all_suspects
-from backend.nlp_engine import extract_keywords
+from scoring import score_all_suspects
+from nlp_engine import extract_keywords
 
 
 # ── Contextual signal phrase patterns ─────────────────────────────────────────

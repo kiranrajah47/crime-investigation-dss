@@ -17,8 +17,8 @@ Functions:
     score_all_suspects(suspects, victim_text, evidence_text) -> list of dicts
 """
 
-from backend.tfidf_scorer import score_suspect_against_docs
-from backend.nlp_engine import preprocess, extract_keywords
+from tfidf_scorer import score_suspect_against_docs
+from nlp_engine import preprocess, extract_keywords
 
 
 # ── Evidence weights ───────────────────────────────────────────────────────────

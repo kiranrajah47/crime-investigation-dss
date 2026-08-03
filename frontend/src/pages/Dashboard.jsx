@@ -172,11 +172,11 @@ const Dashboard = () => {
 
       {/* Main upload card */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 text-left"><div className="lg:col-span-3">
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-          <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div>
-              <h2 className="text-base font-semibold text-slate-800">Upload case documents</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Upload 3 documents — the system will analyse and rank suspects automatically.</p>
+              <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">Upload case documents</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Upload 3 documents — the system will analyse and rank suspects automatically.</p>
             </div>
             <div className="w-8 h-8 gradient-brand rounded-lg flex items-center justify-center text-white">
               <Upload className="w-4 h-4" />
@@ -187,28 +187,28 @@ const Dashboard = () => {
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Case title */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  Case title <span className="font-normal text-slate-400">(optional)</span>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
+                  Case title <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span>
                 </label>
                 <input
                   type="text"
                   value={caseTitle}
                   onChange={(e) => setCaseTitle(e.target.value)}
                   placeholder="e.g. MG Road Warehouse Incident — April 2026"
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 transition-all outline-none"
+                  className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 transition-all outline-none"
                 />
               </div>
 
               {/* Document 1 */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
                   Document 1 — Victim details &amp; incident
                 </label>
-                <p className="text-xs text-slate-500 mb-2 leading-relaxed">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 leading-relaxed">
                   Describe the victim, how they were found, time, location, and immediate observations.
                 </p>
-                <div className="flex items-center gap-3 border-2 border-dashed border-slate-200 rounded-xl px-4 py-3 bg-slate-50 hover:border-blue-400 hover:bg-blue-50/40 transition-all duration-200 group">
-                  <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center flex-shrink-0">
+                <div className="flex items-center gap-3 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 bg-slate-50 dark:bg-slate-800/50 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50/40 dark:hover:bg-blue-900/20 transition-all duration-200 group">
+                  <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-bold flex items-center justify-center flex-shrink-0">
                     1
                   </div>
                   <input
@@ -216,21 +216,21 @@ const Dashboard = () => {
                     accept=".txt,.docx,.pdf"
                     required
                     onChange={(e) => setVictimFile(e.target.files[0])}
-                    className="w-full text-sm text-slate-500 cursor-pointer file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200"
+                    className="w-full text-sm text-slate-500 dark:text-slate-400 cursor-pointer file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-100 dark:file:bg-blue-900/40 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-200"
                   />
                 </div>
               </div>
 
               {/* Document 2 */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
                   Document 2 — Evidence recovered
                 </label>
-                <p className="text-xs text-slate-500 mb-2 leading-relaxed">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 leading-relaxed">
                   List all physical evidence, CCTV details, witness statements, and forensic notes.
                 </p>
-                <div className="flex items-center gap-3 border-2 border-dashed border-slate-200 rounded-xl px-4 py-3 bg-slate-50 hover:border-blue-400 hover:bg-blue-50/40 transition-all duration-200">
-                  <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center flex-shrink-0">
+                <div className="flex items-center gap-3 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 bg-slate-50 dark:bg-slate-800/50 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50/40 dark:hover:bg-blue-900/20 transition-all duration-200">
+                  <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-bold flex items-center justify-center flex-shrink-0">
                     2
                   </div>
                   <input
@@ -238,21 +238,21 @@ const Dashboard = () => {
                     accept=".txt,.docx,.pdf"
                     required
                     onChange={(e) => setEvidenceFile(e.target.files[0])}
-                    className="w-full text-sm text-slate-500 cursor-pointer file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200"
+                    className="w-full text-sm text-slate-500 dark:text-slate-400 cursor-pointer file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-100 dark:file:bg-blue-900/40 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-200"
                   />
                 </div>
               </div>
 
               {/* Document 3 */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
                   Document 3 — Suspect profiles
                 </label>
-                <p className="text-xs text-slate-500 mb-2 leading-relaxed">
-                  Each suspect section must start with <strong className="text-slate-700">SUSPECT: Name</strong> on its own line.
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 leading-relaxed">
+                  Each suspect section must start with <strong className="text-slate-700 dark:text-slate-200">SUSPECT: Name</strong> on its own line.
                 </p>
-                <div className="flex items-center gap-3 border-2 border-dashed border-slate-200 rounded-xl px-4 py-3 bg-slate-50 hover:border-blue-400 hover:bg-blue-50/40 transition-all duration-200">
-                  <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center flex-shrink-0">
+                <div className="flex items-center gap-3 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 bg-slate-50 dark:bg-slate-800/50 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50/40 dark:hover:bg-blue-900/20 transition-all duration-200">
+                  <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-bold flex items-center justify-center flex-shrink-0">
                     3
                   </div>
                   <input
@@ -260,15 +260,15 @@ const Dashboard = () => {
                     accept=".txt,.docx,.pdf"
                     required
                     onChange={(e) => setSuspectsFile(e.target.files[0])}
-                    className="w-full text-sm text-slate-500 cursor-pointer file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200"
+                    className="w-full text-sm text-slate-500 dark:text-slate-400 cursor-pointer file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-100 dark:file:bg-blue-900/40 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-200"
                   />
                 </div>
               </div>
 
               {/* Format box */}
-              <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-500 leading-relaxed font-mono">
-                <strong className="text-slate-700 font-sans">Required format for Document 3:</strong>
-                <pre className="mt-2 bg-slate-100 rounded-lg px-3 py-2 text-slate-600 text-[11px] leading-relaxed overflow-x-auto whitespace-pre">
+              <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-mono">
+                <strong className="text-slate-700 dark:text-slate-200 font-sans">Required format for Document 3:</strong>
+                <pre className="mt-2 bg-slate-100 dark:bg-slate-800 rounded-lg px-3 py-2 text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed overflow-x-auto whitespace-pre">
 {`SUSPECT: Rajan Shetty
 Rajan was a colleague of the victim...
 He had an ongoing financial dispute...
@@ -280,18 +280,18 @@ No physical evidence links her directly...`}
               </div>
 
               {/* Evidence weight sliders */}
-              <div className="bg-slate-50 border border-slate-200 rounded-xl px-5 py-4">
+              <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-5 py-4">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-semibold text-slate-800">Evidence weights</span>
+                  <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">Evidence weights</span>
                   <button
                     type="button"
                     onClick={resetWeights}
-                    className="text-xs text-slate-500 bg-white border border-slate-200 rounded-lg px-3 py-1 hover:bg-slate-100 transition-all cursor-pointer font-medium"
+                    className="text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all cursor-pointer font-medium"
                   >
                     Reset to default
                   </button>
                 </div>
-                <p className="text-xs text-slate-500 mb-4 leading-relaxed font-sans">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed font-sans">
                   Adjust how much each evidence type contributes to the final score. Choose a preset below or customise manually.
                 </p>
 
@@ -329,12 +329,12 @@ No physical evidence links her directly...`}
                   ].map((slider) => (
                     <div key={slider.id}>
                       <div className="flex justify-between items-center mb-0.5">
-                        <label className="text-sm font-medium text-slate-700">{slider.label}</label>
-                        <span className="text-sm font-bold text-blue-600 min-w-[36px] text-right">
+                        <label className="text-sm font-medium text-slate-700 dark:text-slate-200">{slider.label}</label>
+                        <span className="text-sm font-bold text-blue-600 dark:text-blue-400 min-w-[36px] text-right">
                           {slider.val.toFixed(2)}
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-400 mb-1.5">{slider.desc}</p>
+                      <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-1.5">{slider.desc}</p>
                       <input
                         type="range"
                         min="0"
@@ -349,14 +349,14 @@ No physical evidence links her directly...`}
                 </div>
 
                 {/* Presets */}
-                <div className="flex flex-wrap gap-2 items-center pt-4 mt-4 border-t border-slate-200 font-sans">
-                  <span className="text-xs text-slate-500 font-medium">Presets:</span>
+                <div className="flex flex-wrap gap-2 items-center pt-4 mt-4 border-t border-slate-200 dark:border-slate-700 font-sans">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Presets:</span>
                   {presets.map((preset, idx) => (
                     <div key={idx} className="relative group">
                       <button
                         type="button"
                         onClick={() => applyPreset(...preset.weights)}
-                        className="text-xs px-3 py-1.5 rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all duration-150 cursor-pointer"
+                        className="text-xs px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all duration-150 cursor-pointer"
                       >
                         {preset.name}
                       </button>
@@ -380,7 +380,7 @@ No physical evidence links her directly...`}
               </button>
             </form>
 
-            <p className="text-[11px] text-slate-400 text-center mt-4 leading-relaxed font-sans">
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 text-center mt-4 leading-relaxed font-sans">
               This system is a decision-support tool only. All investigative decisions must be made
               by a qualified human investigator.
             </p>
@@ -391,9 +391,9 @@ No physical evidence links her directly...`}
         {/* Right column: Info panel (2/5 width) */}
         <div className="lg:col-span-2 flex flex-col gap-5">
           {/* How it works */}
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden text-left">
-            <div className="px-5 py-4 border-b border-slate-100">
-              <h3 className="text-sm font-semibold text-slate-800">How it works</h3>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden text-left">
+            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">How it works</h3>
             </div>
             <div className="px-5 py-4 space-y-4">
               {[
@@ -405,8 +405,8 @@ No physical evidence links her directly...`}
                 <div key={item.step} className="flex gap-3">
                   <div className="w-6 h-6 rounded-full gradient-brand text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{item.step}</div>
                   <div>
-                    <div className="text-sm font-semibold text-slate-700 font-sans">{item.title}</div>
-                    <div className="text-xs text-slate-500 mt-0.5 leading-relaxed font-sans">{item.desc}</div>
+                    <div className="text-sm font-semibold text-slate-700 dark:text-slate-200 font-sans">{item.title}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed font-sans">{item.desc}</div>
                   </div>
                 </div>
               ))}
@@ -414,8 +414,8 @@ No physical evidence links her directly...`}
           </div>
 
           {/* Tips card */}
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl shadow-sm px-5 py-4 text-left">
-            <h3 className="text-sm font-semibold text-blue-800 mb-3 font-sans">Tips for best results</h3>
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 border border-blue-100 dark:border-blue-900/50 rounded-2xl shadow-sm px-5 py-4 text-left">
+            <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-3 font-sans">Tips for best results</h3>
             <ul className="space-y-2 font-sans">
               {[
                 'Use plain .txt files for fastest processing.',
@@ -423,8 +423,8 @@ No physical evidence links her directly...`}
                 'More detail in suspect profiles yields more accurate scores.',
                 'Use the Financial Fraud preset for white-collar cases.'
               ].map((tip, i) => (
-                <li key={i} className="flex gap-2 text-xs text-blue-700">
-                  <span className="text-blue-400 mt-0.5">→</span>
+                <li key={i} className="flex gap-2 text-xs text-blue-700 dark:text-blue-300">
+                  <span className="text-blue-400 dark:text-blue-400 mt-0.5">→</span>
                   <span className="leading-relaxed">{tip}</span>
                 </li>
               ))}
@@ -432,28 +432,28 @@ No physical evidence links her directly...`}
           </div>
 
           {/* Priority scale legend */}
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm px-5 py-4 text-left">
-            <h3 className="text-sm font-semibold text-slate-800 mb-3 font-sans">Score interpretation</h3>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm px-5 py-4 text-left">
+            <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-3 font-sans">Score interpretation</h3>
             <div className="space-y-2.5 font-sans">
               <div className="flex items-center gap-3">
                 <span className="w-3 h-3 rounded-full bg-red-500 flex-shrink-0"></span>
                 <div>
-                  <span className="text-xs font-semibold text-slate-700">Primary suspect</span>
-                  <span className="text-xs text-slate-400 ml-1">(≥ 0.55)</span>
+                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">Primary suspect</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500 ml-1">(≥ 0.55)</span>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <span className="w-3 h-3 rounded-full bg-amber-500 flex-shrink-0"></span>
                 <div>
-                  <span className="text-xs font-semibold text-slate-700">Secondary suspect</span>
-                  <span className="text-xs text-slate-400 ml-1">(0.30 – 0.54)</span>
+                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">Secondary suspect</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500 ml-1">(0.30 – 0.54)</span>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <span className="w-3 h-3 rounded-full bg-emerald-500 flex-shrink-0"></span>
                 <div>
-                  <span className="text-xs font-semibold text-slate-700">Low concern</span>
-                  <span className="text-xs text-slate-400 ml-1">(&lt; 0.30)</span>
+                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">Low concern</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500 ml-1">(&lt; 0.30)</span>
                 </div>
               </div>
             </div>

@@ -10,32 +10,32 @@ const SuspectCard = ({ suspect, index, isOpen, onToggle }) => {
 
   let theme = {
     borderColor: 'border-l-emerald-400',
-    rankBg: 'bg-emerald-100 text-emerald-700',
-    confClass: 'bg-slate-100 text-slate-500',
+    rankBg: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300',
+    confClass: 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400',
     confLabel: 'Weak signal',
     prioLabel: 'Low concern',
-    prioText: 'text-emerald-600',
-    fillColor: 'bg-slate-400'
+    prioText: 'text-emerald-600 dark:text-emerald-400',
+    fillColor: 'bg-slate-400 dark:bg-slate-500'
   };
 
   if (priority === 'Primary suspect') {
     theme = {
       borderColor: 'border-l-red-500',
-      rankBg: 'bg-red-100 text-red-700',
-      confClass: 'bg-green-100 text-green-700',
+      rankBg: 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300',
+      confClass: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300',
       confLabel: 'Strong signal',
       prioLabel: 'Primary suspect',
-      prioText: 'text-red-600',
+      prioText: 'text-red-600 dark:text-red-400',
       fillColor: 'bg-red-500'
     };
   } else if (priority === 'Secondary suspect') {
     theme = {
       borderColor: 'border-l-orange-400',
-      rankBg: 'bg-orange-100 text-orange-700',
-      confClass: 'bg-amber-100 text-amber-700',
+      rankBg: 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300',
+      confClass: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300',
       confLabel: 'Moderate signal',
       prioLabel: 'Secondary suspect',
-      prioText: 'text-orange-700',
+      prioText: 'text-orange-700 dark:text-orange-400',
       fillColor: 'bg-orange-400'
     };
   }
@@ -52,19 +52,19 @@ const SuspectCard = ({ suspect, index, isOpen, onToggle }) => {
   const excessSignals = totalSignals - maxSignals;
 
   return (
-    <div className={`bg-white border border-slate-200 border-l-4 ${theme.borderColor} rounded-xl mb-4 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200`}>
+    <div className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 ${theme.borderColor} rounded-xl mb-4 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200`}>
       {/* Header (clickable) */}
       <div
-        className="flex items-center gap-3 px-5 py-4 cursor-pointer select-none hover:bg-slate-50 transition-colors duration-150"
+        className="flex items-center gap-3 px-5 py-4 cursor-pointer select-none hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors duration-150"
         onClick={onToggle}
       >
         <div className={`w-9 h-9 rounded-full ${theme.rankBg} text-sm font-bold flex items-center justify-center flex-shrink-0`}>
           #{suspect.rank}
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-base font-semibold text-slate-800">{suspect.name}</h3>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Score: <strong className="text-slate-700">{finalScore.toFixed(4)}</strong>
+          <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">{suspect.name}</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Score: <strong className="text-slate-700 dark:text-slate-200">{finalScore.toFixed(4)}</strong>
             &nbsp;—&nbsp;
             <span className={`${theme.prioText} font-semibold`}>{theme.prioLabel}</span>
           </p>
@@ -74,7 +74,7 @@ const SuspectCard = ({ suspect, index, isOpen, onToggle }) => {
             {theme.confLabel}
           </span>
           <ChevronDown
-            className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
+            className={`w-4 h-4 text-slate-400 dark:text-slate-500 transition-transform duration-200 ${
               isOpen ? 'rotate-180' : ''
             }`}
           />
@@ -83,9 +83,9 @@ const SuspectCard = ({ suspect, index, isOpen, onToggle }) => {
 
       {/* Expandable Body */}
       {isOpen && (
-        <div className="border-t border-slate-100 px-5 pb-5 fade-in">
+        <div className="border-t border-slate-100 dark:border-slate-800 px-5 pb-5 fade-in">
           {/* Score breakdown bars */}
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-4 mb-2.5">
+          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-4 mb-2.5">
             Evidence score breakdown
           </p>
           <div className="space-y-2.5">
@@ -110,14 +110,14 @@ const SuspectCard = ({ suspect, index, isOpen, onToggle }) => {
               }
             ].map((bar, idx) => (
               <div key={idx} className="flex items-center gap-3">
-                <span className="text-xs text-slate-500 w-36 flex-shrink-0">{bar.name}</span>
-                <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
+                <span className="text-xs text-slate-500 dark:text-slate-400 w-36 flex-shrink-0">{bar.name}</span>
+                <div className="flex-1 bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
                   <div
                     className={`h-full ${theme.fillColor} rounded-full transition-all`}
                     style={{ width: `${getPercentage(bar.val, bar.max)}%` }}
                   ></div>
                 </div>
-                <span className="text-xs font-semibold text-slate-600 w-10 text-right">
+                <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 w-10 text-right">
                   {bar.display.toFixed(4)}
                 </span>
               </div>
@@ -125,14 +125,14 @@ const SuspectCard = ({ suspect, index, isOpen, onToggle }) => {
 
             {/* Alibi strength (green bar) */}
             <div className="flex items-center gap-3">
-              <span className="text-xs text-slate-500 w-36 flex-shrink-0">Alibi strength</span>
-              <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
+              <span className="text-xs text-slate-500 dark:text-slate-400 w-36 flex-shrink-0">Alibi strength</span>
+              <div className="flex-1 bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
                 <div
                   className="h-full bg-green-500 rounded-full transition-all"
                   style={{ width: `${getPercentage(suspect.alibi_score, 1.0)}%` }}
                 ></div>
               </div>
-              <span className="text-xs font-semibold text-slate-600 w-10 text-right">
+              <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 w-10 text-right">
                 {suspect.alibi_score.toFixed(4)}
               </span>
             </div>
@@ -141,16 +141,16 @@ const SuspectCard = ({ suspect, index, isOpen, onToggle }) => {
           {/* Key evidence signals */}
           {suspect.signals && suspect.signals.length > 0 && (
             <>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-4 mb-2">
+              <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-4 mb-2">
                 Key evidence signals
               </p>
               <div className="flex flex-wrap gap-1.5 mb-1">
                 {visibleSignals.map((signal, idx) => {
-                  let badgeClass = 'bg-slate-100 text-slate-500';
+                  let badgeClass = 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400';
                   if (signal.type === 'against') {
-                    badgeClass = 'bg-red-100 text-red-700';
+                    badgeClass = 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300';
                   } else if (signal.type === 'for') {
-                    badgeClass = 'bg-green-100 text-green-700';
+                    badgeClass = 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300';
                   }
                   return (
                     <span key={idx} className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${badgeClass}`}>
@@ -159,7 +159,7 @@ const SuspectCard = ({ suspect, index, isOpen, onToggle }) => {
                   );
                 })}
                 {excessSignals > 0 && (
-                  <span className="text-[11px] italic px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-400">
+                  <span className="text-[11px] italic px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500">
                     +{excessSignals} more
                   </span>
                 )}
@@ -168,11 +168,11 @@ const SuspectCard = ({ suspect, index, isOpen, onToggle }) => {
           )}
 
           {/* System reasoning */}
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-4 mb-2">
+          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-4 mb-2">
             System reasoning
           </p>
           <div
-            className="bg-slate-50 border-l-4 border-slate-300 border border-slate-200 rounded-r-xl px-4 py-3 text-xs text-slate-600 leading-relaxed"
+            className="bg-slate-50 dark:bg-slate-800/50 border-l-4 border-slate-300 dark:border-slate-600 border border-slate-200 dark:border-slate-700 rounded-r-xl px-4 py-3 text-xs text-slate-600 dark:text-slate-300 leading-relaxed"
             style={{ borderLeftWidth: '3px', borderLeftColor: '#cbd5e1' }}
           >
             {suspect.explanation}
@@ -181,11 +181,11 @@ const SuspectCard = ({ suspect, index, isOpen, onToggle }) => {
           {/* Matched profile text */}
           {suspect.highlighted_text && (
             <>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-4 mb-2">
+              <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-4 mb-2">
                 Matched profile text
               </p>
               <div
-                className="bg-slate-50 border-l-4 border-slate-300 border border-slate-200 rounded-r-xl px-4 py-3 text-xs text-slate-600 leading-relaxed whitespace-pre-wrap"
+                className="bg-slate-50 dark:bg-slate-800/50 border-l-4 border-slate-300 dark:border-slate-600 border border-slate-200 dark:border-slate-700 rounded-r-xl px-4 py-3 text-xs text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap"
                 style={{ borderLeftWidth: '3px', borderLeftColor: '#cbd5e1' }}
                 dangerouslySetInnerHTML={{ __html: suspect.highlighted_text }}
               />
@@ -194,46 +194,46 @@ const SuspectCard = ({ suspect, index, isOpen, onToggle }) => {
 
 
           {/* Score breakdown table */}
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-4 mb-2">
+          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-4 mb-2">
             Weighted score breakdown
           </p>
-          <div className="overflow-hidden rounded-xl border border-slate-200">
+          <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
             <table className="w-full text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-50">
-                  <th className="px-4 py-2.5 text-left text-slate-500 font-semibold border-b border-slate-200">Component</th>
-                  <th className="px-4 py-2.5 text-right text-slate-500 font-semibold border-b border-slate-200">Raw score</th>
-                  <th className="px-4 py-2.5 text-right text-slate-500 font-semibold border-b border-slate-200">Weighted contribution</th>
+                <tr className="bg-slate-50 dark:bg-slate-800/70">
+                  <th className="px-4 py-2.5 text-left text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-700">Component</th>
+                  <th className="px-4 py-2.5 text-right text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-700">Raw score</th>
+                  <th className="px-4 py-2.5 text-right text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-700">Weighted contribution</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
-                <tr className="bg-white">
-                  <td className="px-4 py-2.5 text-slate-700">Physical evidence</td>
-                  <td className="px-4 py-2.5 text-right text-slate-600">{suspect.evidence_sim.toFixed(4)}</td>
-                  <td className="px-4 py-2.5 text-right font-semibold text-slate-700">+{suspect.score_breakdown.physical_evidence.toFixed(4)}</td>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                <tr className="bg-white dark:bg-slate-900">
+                  <td className="px-4 py-2.5 text-slate-700 dark:text-slate-200">Physical evidence</td>
+                  <td className="px-4 py-2.5 text-right text-slate-600 dark:text-slate-300">{suspect.evidence_sim.toFixed(4)}</td>
+                  <td className="px-4 py-2.5 text-right font-semibold text-slate-700 dark:text-slate-200">+{suspect.score_breakdown.physical_evidence.toFixed(4)}</td>
                 </tr>
-                <tr className="bg-slate-50">
-                  <td className="px-4 py-2.5 text-slate-700">Witness statements</td>
-                  <td className="px-4 py-2.5 text-right text-slate-600">{suspect.victim_sim.toFixed(4)}</td>
-                  <td className="px-4 py-2.5 text-right font-semibold text-slate-700">+{suspect.score_breakdown.witness_statement.toFixed(4)}</td>
+                <tr className="bg-slate-50 dark:bg-slate-800/50">
+                  <td className="px-4 py-2.5 text-slate-700 dark:text-slate-200">Witness statements</td>
+                  <td className="px-4 py-2.5 text-right text-slate-600 dark:text-slate-300">{suspect.victim_sim.toFixed(4)}</td>
+                  <td className="px-4 py-2.5 text-right font-semibold text-slate-700 dark:text-slate-200">+{suspect.score_breakdown.witness_statement.toFixed(4)}</td>
                 </tr>
-                <tr className="bg-white">
-                  <td className="px-4 py-2.5 text-slate-700">Past history</td>
-                  <td className="px-4 py-2.5 text-right text-slate-600">{suspect.past_history_score.toFixed(4)}</td>
-                  <td className="px-4 py-2.5 text-right font-semibold text-slate-700">+{suspect.score_breakdown.past_history.toFixed(4)}</td>
+                <tr className="bg-white dark:bg-slate-900">
+                  <td className="px-4 py-2.5 text-slate-700 dark:text-slate-200">Past history</td>
+                  <td className="px-4 py-2.5 text-right text-slate-600 dark:text-slate-300">{suspect.past_history_score.toFixed(4)}</td>
+                  <td className="px-4 py-2.5 text-right font-semibold text-slate-700 dark:text-slate-200">+{suspect.score_breakdown.past_history.toFixed(4)}</td>
                 </tr>
-                <tr className="bg-slate-50">
-                  <td className="px-4 py-2.5 text-green-700 font-medium">Alibi strength (penalty)</td>
-                  <td className="px-4 py-2.5 text-right text-green-600">{suspect.alibi_score.toFixed(4)}</td>
-                  <td className="px-4 py-2.5 text-right font-semibold text-green-700">
+                <tr className="bg-slate-50 dark:bg-slate-800/50">
+                  <td className="px-4 py-2.5 text-green-700 dark:text-green-400 font-medium">Alibi strength (penalty)</td>
+                  <td className="px-4 py-2.5 text-right text-green-600 dark:text-green-400">{suspect.alibi_score.toFixed(4)}</td>
+                  <td className="px-4 py-2.5 text-right font-semibold text-green-700 dark:text-green-400">
                     {suspect.score_breakdown.alibi_penalty < 0 ? '' : '+'}
                     {suspect.score_breakdown.alibi_penalty.toFixed(4)}
                   </td>
                 </tr>
-                <tr className="bg-slate-100">
-                  <td className="px-4 py-3 text-sm font-bold text-slate-800">Final score</td>
+                <tr className="bg-slate-100 dark:bg-slate-800">
+                  <td className="px-4 py-3 text-sm font-bold text-slate-800 dark:text-slate-100">Final score</td>
                   <td className="px-4 py-3"></td>
-                  <td className="px-4 py-3 text-right text-sm font-bold text-slate-800">{finalScore.toFixed(4)}</td>
+                  <td className="px-4 py-3 text-right text-sm font-bold text-slate-800 dark:text-slate-100">{finalScore.toFixed(4)}</td>
                 </tr>
               </tbody>
             </table>

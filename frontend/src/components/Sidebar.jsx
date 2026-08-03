@@ -1,10 +1,12 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FolderPlus, History, Users, Database, UserPlus, Lock, LogOut } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import { FolderPlus, History, Users, Database, UserPlus, Lock, LogOut, Sun, Moon } from 'lucide-react';
 
 const Sidebar = () => {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleSignOut = async (e) => {
@@ -17,7 +19,7 @@ const Sidebar = () => {
     `flex items-center gap-2.5 px-5 py-2.5 text-sm transition-all duration-150 no-underline ${
       isActive
         ? 'bg-blue-600 text-white font-medium shadow-sm'
-        : 'text-slate-400 hover:bg-navy-700 hover:text-white'
+        : 'text-slate-400 dark:text-slate-300 hover:bg-navy-700 hover:text-white'
     }`;
 
   return (
@@ -87,6 +89,14 @@ const Sidebar = () => {
                 <div className="text-navy-500 text-[10px] capitalize">{user.role}</div>
               </div>
             </div>
+
+            <button
+              onClick={toggleTheme}
+              className="flex items-center gap-2 w-full px-3 py-1.5 bg-navy-700 hover:bg-navy-600 text-slate-300 hover:text-white text-xs rounded-lg transition-all duration-150 border-0 cursor-pointer text-left font-medium"
+            >
+              {theme === 'light' ? <Moon className="w-3 h-3" /> : <Sun className="w-3 h-3" />}
+              {theme === 'light' ? 'Dark mode' : 'Light mode'}
+            </button>
 
             <NavLink
               to="/change-password"

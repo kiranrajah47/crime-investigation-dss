@@ -8,13 +8,14 @@ Provides routes under the /api prefix.
 import os
 import re
 import html
+import math
 from datetime import datetime
 from functools import wraps
 from flask import Blueprint, jsonify, request, current_app, send_from_directory
 from flask_login import login_user, logout_user, current_user
-from backend.models import db, User, Case
-from backend.ranker import build_full_report
-from backend.suspect_tracker import find_repeat_suspects
+from models import db, User, Case
+from ranker import build_full_report
+from suspect_tracker import find_repeat_suspects
 
 
 def generate_highlighted_text(profile_text: str, top_keywords: list) -> str:
@@ -306,27 +307,53 @@ def cases_analyze():
 @api_bp.route("/cases/history", methods=["GET"])
 @api_login_required
 def cases_history():
-    if current_user.is_admin():
-        # Admins see all cases
-        cases = Case.query.order_by(Case.created_at.desc()).all()
-    else:
-        # Investigators see their own cases
-        cases = Case.query.filter_by(user_id=current_user.id).order_by(Case.created_at.desc()).all()
+    try:
+        page = int(request.args.get("page", 1))
+        if page < 1:
+            page = 1
+    except (ValueError, TypeError):
+        page = 1
 
-    return jsonify([{
-        "id": c.id,
-        "case_id": c.case_id,
-        "title": c.title,
-        "top_suspect": c.top_suspect,
-        "top_score": c.top_score,
-        "num_suspects": c.num_suspects,
-        "created_at": c.created_at.isoformat(),
-        "formatted_date": c.formatted_date(),
-        "investigator": {
-            "id": c.investigator.id,
-            "fullName": c.investigator.full_name
-        }
-    } for c in cases])
+    try:
+        per_page = int(request.args.get("per_page", 10))
+        if per_page < 1:
+            per_page = 10
+    except (ValueError, TypeError):
+        per_page = 10
+
+    if current_user.is_admin():
+        query = Case.query.order_by(Case.created_at.desc())
+    else:
+        query = Case.query.filter_by(user_id=current_user.id).order_by(Case.created_at.desc())
+
+    total = query.count()
+    total_pages = math.ceil(total / per_page) if total > 0 else 1
+
+    if page > total_pages and total > 0:
+        page = total_pages
+
+    offset = (page - 1) * per_page
+    cases = query.offset(offset).limit(per_page).all()
+
+    return jsonify({
+        "cases": [{
+            "id": c.id,
+            "case_id": c.case_id,
+            "title": c.title,
+            "top_suspect": c.top_suspect,
+            "top_score": c.top_score,
+            "num_suspects": c.num_suspects,
+            "created_at": c.created_at.isoformat(),
+            "formatted_date": c.formatted_date(),
+            "investigator": {
+                "id": c.investigator.id if c.investigator else None,
+                "fullName": c.investigator.full_name if c.investigator else "Unknown"
+            }
+        } for c in cases],
+        "total": total,
+        "page": page,
+        "total_pages": total_pages
+    })
 
 @api_bp.route("/cases/<int:case_db_id>", methods=["GET"])
 @api_login_required
@@ -402,6 +429,72 @@ def case_repeat_suspects(case_db_id):
     return jsonify({
         "repeat_suspects": filtered_repeats
     })
+
+@api_bp.route("/cases/<int:case_db_id>/sbert-comparison", methods=["GET"])
+@api_login_required
+def case_sbert_comparison(case_db_id):
+    case = Case.query.get_or_404(case_db_id)
+
+    if not current_user.is_admin() and case.user_id != current_user.id:
+        return jsonify({"success": False, "message": "Access denied. You can only view your own cases."}), 403
+
+    try:
+        from sbert_scorer import sbert_similarity
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Sentence-BERT engine unavailable: {str(e)}"}), 500
+
+    report = case.get_report() or []
+    parsed_suspects = parse_suspects_file(case.suspects_text or "")
+    suspect_text_map = {s["name"]: s["text"] for s in parsed_suspects}
+
+    combined_reference = (case.evidence_text or "") + "\n\n" + (case.victim_text or "")
+
+    results = []
+    try:
+        for suspect in report:
+            if not isinstance(suspect, dict):
+                continue
+            name = suspect.get("name", "")
+            tfidf_score = suspect.get("final_score", 0.0)
+
+            profile_text = suspect.get("text") or suspect_text_map.get(name, "")
+            if not profile_text:
+                s_name = name.strip().lower()
+                for n, txt in suspect_text_map.items():
+                    if n.strip().lower() == s_name:
+                        profile_text = txt
+                        break
+
+            if profile_text and combined_reference.strip():
+                raw_sim = sbert_similarity(profile_text, combined_reference)
+                sbert_score = round(max(0.0, min(1.0, float(raw_sim))), 4)
+            else:
+                sbert_score = 0.0
+
+            results.append({
+                "name": name,
+                "tfidf_score": round(float(tfidf_score), 4),
+                "sbert_score": sbert_score
+            })
+
+        # ── Rank calculation (purely additive — no scoring logic changed) ──────
+        # tfidf_rank: position in TF-IDF order (report is already sorted by it)
+        tfidf_sorted = sorted(results, key=lambda x: x["tfidf_score"], reverse=True)
+        for i, item in enumerate(tfidf_sorted, start=1):
+            item["tfidf_rank"] = i
+
+        # sbert_rank: position when re-sorted by sbert_score descending
+        sbert_sorted = sorted(results, key=lambda x: x["sbert_score"], reverse=True)
+        for i, item in enumerate(sbert_sorted, start=1):
+            item["sbert_rank"] = i
+
+        # rank_change: positive = moved up in SBERT ranking, negative = moved down
+        for item in results:
+            item["rank_change"] = item["tfidf_rank"] - item["sbert_rank"]
+
+        return jsonify(results)
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Failed to compute Sentence-BERT embeddings: {str(e)}"}), 500
 
 # ── Admin endpoints ────────────────────────────────────────────────────────────
 
@@ -489,6 +582,54 @@ def admin_delete_user(user_id):
     db.session.commit()
 
     return jsonify({"success": True, "message": f"User {user.username} and all their cases have been deleted."})
+
+@api_bp.route("/admin/cases", methods=["GET"])
+@api_admin_required
+def admin_cases():
+    try:
+        page = int(request.args.get("page", 1))
+        if page < 1:
+            page = 1
+    except (ValueError, TypeError):
+        page = 1
+
+    try:
+        per_page = int(request.args.get("per_page", 10))
+        if per_page < 1:
+            per_page = 10
+    except (ValueError, TypeError):
+        per_page = 10
+
+    query = Case.query.order_by(Case.created_at.desc())
+
+    total = query.count()
+    total_pages = math.ceil(total / per_page) if total > 0 else 1
+
+    if page > total_pages and total > 0:
+        page = total_pages
+
+    offset = (page - 1) * per_page
+    cases = query.offset(offset).limit(per_page).all()
+
+    return jsonify({
+        "cases": [{
+            "id": c.id,
+            "case_id": c.case_id,
+            "title": c.title,
+            "top_suspect": c.top_suspect,
+            "top_score": c.top_score,
+            "num_suspects": c.num_suspects,
+            "created_at": c.created_at.isoformat(),
+            "formatted_date": c.formatted_date(),
+            "investigator": {
+                "id": c.investigator.id if c.investigator else None,
+                "fullName": c.investigator.full_name if c.investigator else "Unknown"
+            }
+        } for c in cases],
+        "total": total,
+        "page": page,
+        "total_pages": total_pages
+    })
 
 @api_bp.route("/admin/cases/<int:case_id>/delete", methods=["POST"])
 @api_admin_required
