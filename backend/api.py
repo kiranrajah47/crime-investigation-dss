@@ -441,6 +441,7 @@ def case_sbert_comparison(case_db_id):
     try:
         from sbert_scorer import sbert_similarity
     except Exception as e:
+        import traceback; traceback.print_exc()
         return jsonify({"success": False, "message": f"Sentence-BERT engine unavailable: {str(e)}"}), 500
 
     report = case.get_report() or []
@@ -494,6 +495,7 @@ def case_sbert_comparison(case_db_id):
 
         return jsonify(results)
     except Exception as e:
+        import traceback; traceback.print_exc()
         return jsonify({"success": False, "message": f"Failed to compute Sentence-BERT embeddings: {str(e)}"}), 500
 
 # ── Admin endpoints ────────────────────────────────────────────────────────────

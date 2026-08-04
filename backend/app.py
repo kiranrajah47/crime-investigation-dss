@@ -165,4 +165,4 @@ def create_default_admin():
 
 if __name__ == "__main__":
     create_default_admin()
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)
