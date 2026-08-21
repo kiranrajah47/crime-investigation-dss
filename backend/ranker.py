@@ -19,6 +19,7 @@ Functions:
 
 from scoring import score_all_suspects
 from nlp_engine import extract_keywords
+from validation_checks import check_document_coherence
 
 
 # ── Contextual signal phrase patterns ─────────────────────────────────────────
@@ -262,10 +263,10 @@ def build_full_report(
     victim_text: str,
     evidence_text: str,
     custom_weights: dict = None
-) -> list:
+) -> dict:
     """
     Master function that runs the complete pipeline for all suspects
-    and returns a fully enriched report list ready for Flask to render.
+    and returns a fully enriched report dict ready for Flask to render.
 
     This is the ONLY function app.py needs to call from this module.
 
@@ -275,12 +276,9 @@ def build_full_report(
         evidence_text : Raw text of Document 2 (evidence recovered)
 
     Returns:
-        List of fully enriched suspect dicts, each containing:
-            - rank, name, final_score, priority
-            - score_breakdown (for the bar charts)
-            - explanation (plain English paragraph)
-            - signals (list of coloured evidence tags)
-            - top_keywords
+        Dict containing:
+            - suspects: List of fully enriched suspect dicts
+            - coherence_check: Dict with document coherence validation flags
     """
 
     # Step 1: Score all suspects and sort by final_score
@@ -314,7 +312,13 @@ def build_full_report(
         }
         report.append(enriched)
 
-    return report
+    # Step 4: Run document coherence check
+    coherence_check = check_document_coherence(victim_text, evidence_text, scored)
+
+    return {
+        "suspects": report,
+        "coherence_check": coherence_check
+    }
 
 
 # ── Quick self-test ────────────────────────────────────────────────────────────
@@ -373,9 +377,11 @@ if __name__ == "__main__":
     ]
 
     print("=== Full Investigation Report ===\n")
-    report = build_full_report(suspects, victim_doc, evidence_doc)
+    report_dict = build_full_report(suspects, victim_doc, evidence_doc)
 
-    for r in report:
+    print(f"Coherence Check: {report_dict['coherence_check']}\n")
+
+    for r in report_dict["suspects"]:
         print(f"Rank #{r['rank']}: {r['name']}  |  Score: {r['final_score']}  |  {r['priority']}")
         print(f"  Signals     : {[s['label'] + ' (' + s['type'] + ')' for s in r['signals']]}")
         print(f"  Explanation : {r['explanation']}")

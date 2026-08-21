@@ -19,6 +19,7 @@ Functions:
 
 from tfidf_scorer import score_suspect_against_docs
 from nlp_engine import preprocess, extract_keywords
+from validation_checks import check_document_coherence
 
 
 # ── Evidence weights ───────────────────────────────────────────────────────────

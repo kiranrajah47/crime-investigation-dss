@@ -275,6 +275,8 @@ def cases_analyze():
     except Exception as e:
         return jsonify({"success": False, "message": f"Analysis error: {str(e)}"}), 500
 
+    suspects_report = report.get("suspects", []) if isinstance(report, dict) else report
+
     case_id = f"CASE-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
     raw_title = request.form.get("case_title", "").strip()
     if not raw_title:
@@ -287,8 +289,8 @@ def cases_analyze():
         case_id=case_id,
         title=case_title,
         num_suspects=len(suspects),
-        top_suspect=report[0]["name"] if report else "",
-        top_score=report[0]["final_score"] if report else 0.0,
+        top_suspect=suspects_report[0]["name"] if suspects_report else "",
+        top_score=suspects_report[0]["final_score"] if suspects_report else 0.0,
         victim_text=victim_text,
         evidence_text=evidence_text,
         suspects_text=suspects_text,
@@ -363,7 +365,14 @@ def case_details(case_db_id):
     if not current_user.is_admin() and case.user_id != current_user.id:
         return jsonify({"success": False, "message": "Access denied. You can only view your own cases."}), 403
 
-    report = case.get_report() or []
+    report_data = case.get_report() or []
+    if isinstance(report_data, dict):
+        report = report_data.get("suspects", [])
+        coherence_check = report_data.get("coherence_check", None)
+    else:
+        report = report_data if isinstance(report_data, list) else []
+        coherence_check = None
+
     parsed_suspects = parse_suspects_file(case.suspects_text or "")
     suspect_text_map = {s["name"]: s["text"] for s in parsed_suspects}
 
@@ -392,7 +401,8 @@ def case_details(case_db_id):
             "formatted_date": case.formatted_date(),
             "created_at": case.created_at.isoformat()
         },
-        "report": report
+        "report": report,
+        "coherence_check": coherence_check
     })
 
 
@@ -420,7 +430,8 @@ def case_repeat_suspects(case_db_id):
     if not current_user.is_admin() and case.user_id != current_user.id:
         return jsonify({"success": False, "message": "Access denied. You can only view your own cases."}), 403
 
-    report = case.get_report() or []
+    report_data = case.get_report() or []
+    report = report_data.get("suspects", []) if isinstance(report_data, dict) else report_data
     top_4_suspects = [s["name"] for s in report[:4] if isinstance(s, dict) and "name" in s]
 
     all_repeats = find_repeat_suspects(case.id, top_4_suspects, top_n=4)
@@ -444,7 +455,8 @@ def case_sbert_comparison(case_db_id):
         import traceback; traceback.print_exc()
         return jsonify({"success": False, "message": f"Sentence-BERT engine unavailable: {str(e)}"}), 500
 
-    report = case.get_report() or []
+    report_data = case.get_report() or []
+    report = report_data.get("suspects", []) if isinstance(report_data, dict) else report_data
     parsed_suspects = parse_suspects_file(case.suspects_text or "")
     suspect_text_map = {s["name"]: s["text"] for s in parsed_suspects}
 
@@ -654,7 +666,8 @@ def admin_suspect_search():
 
     for c in cases:
         try:
-            report = c.get_report()
+            report_data = c.get_report()
+            report = report_data.get("suspects", []) if isinstance(report_data, dict) else report_data
         except Exception:
             continue
 

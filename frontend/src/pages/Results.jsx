@@ -9,6 +9,7 @@ const Results = () => {
   const { id } = useParams();
   const [caseData, setCaseData] = useState(null);
   const [report, setReport] = useState([]);
+  const [coherenceCheck, setCoherenceCheck] = useState(null);
   const [repeatSuspects, setRepeatSuspects] = useState([]);
   const [notes, setNotes] = useState('');
   const [savingNotes, setSavingNotes] = useState(false);
@@ -30,6 +31,7 @@ const Results = () => {
         const response = await axios.get(`/api/cases/${id}`);
         setCaseData(response.data.case);
         setReport(response.data.report || []);
+        setCoherenceCheck(response.data.coherence_check || response.data.report?.coherence_check || null);
         setNotes(response.data.case?.notes || '');
         setError(null);
 
@@ -139,6 +141,7 @@ const Results = () => {
   }
 
   const weightsUsed = report.length > 0 ? report[0].weights_used : null;
+  const hasCoherenceWarning = coherenceCheck && (coherenceCheck.victim_evidence_mismatch || coherenceCheck.all_suspects_low_overlap);
 
   const topbarActions = (
     <>
@@ -226,6 +229,16 @@ const Results = () => {
                 . This may indicate a pattern worth investigating.
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Document coherence warning indicator */}
+      {hasCoherenceWarning && (
+        <div className="flex items-start gap-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl px-5 py-3.5 mb-4 text-xs text-rose-800 dark:text-rose-200 shadow-sm text-left font-sans">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5 text-rose-500" />
+          <div className="leading-relaxed">
+            <strong>Document mismatch warning</strong> — The uploaded documents show unusually low overlap with each other. This may indicate the victim, evidence, and suspect documents do not correspond to the same case. Please verify the correct files were uploaded before relying on these results.
           </div>
         </div>
       )}

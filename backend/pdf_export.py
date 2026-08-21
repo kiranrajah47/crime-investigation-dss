@@ -115,17 +115,20 @@ def score_bar_table(label: str, score: float, color, max_width: float = 10.0):
 
 # ── Main PDF generator ─────────────────────────────────────────────────────────
 
-def generate_case_pdf(case, report: list) -> bytes:
+def generate_case_pdf(case, report) -> bytes:
     """
     Generate a complete PDF report for a case analysis.
 
     Args:
         case   : SQLAlchemy Case object
-        report : List of enriched suspect dicts from build_full_report()
+        report : List of enriched suspect dicts or report dict from build_full_report()
 
     Returns:
         PDF as bytes — ready to send as a Flask file response
     """
+    if isinstance(report, dict):
+        report = report.get("suspects", [])
+
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer,

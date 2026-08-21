@@ -56,6 +56,8 @@ def find_repeat_suspects(current_case_id, suspect_names, top_n=4):
         for case in all_cases:
             try:
                 report = case.get_report()
+                if isinstance(report, dict):
+                    report = report.get("suspects", [])
             except Exception:
                 continue
 
