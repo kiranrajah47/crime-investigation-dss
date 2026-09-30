@@ -1,0 +1,24 @@
+{
+  "case_id": "fraud_nagpur",
+  "description": "Financial fraud case in Nagpur — TEST SET (frozen before V2 scoring)",
+  "db_case_id": 31,
+  "labels": {
+    "Sudhir Deshmukh": 3,
+    "Anil Wankhede": 3,
+    "Pooja Chitnis": 2,
+    "Mangesh Thakre": 2,
+    "Farhan Ansari": 1,
+    "Vivek Kale": 1,
+    "Rajendra Mahajan": 1,
+    "Sulochana Deshmukh": 1,
+    "Priti Joshi": 0,
+    "Ramesh Gaikwad": 0,
+    "Shirish Pande": 0
+  },
+  "label_scale": {
+    "3": "Strongly implicated — primary suspect",
+    "2": "Plausibly involved — secondary suspect",
+    "1": "Peripheral / weak link",
+    "0": "Not involved — should rank low"
+  }
+}

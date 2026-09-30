@@ -7,47 +7,108 @@
 @theme {
   --color-navy-50:  #f0f4ff;
   --color-navy-100: #dbe4ff;
+  --color-navy-200: #bac8ff;
+  --color-navy-300: #91a7ff;
   --color-navy-400: #4a6fa5;
-  --color-navy-500: #7c9bc4;
-  --color-navy-600: #a8c0e0;
+  --color-navy-500: #385d94;
+  --color-navy-600: #2b497a;
   --color-navy-700: #1a3260;
   --color-navy-800: #0f1f3d;
   --color-navy-900: #0a1628;
+  --color-navy-950: #060e1b;
 
-  --font-family-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-family-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 /* ── Base styles ───────────────────────────────────────────────────────────── */
 body {
-  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  font-family: var(--font-family-sans);
   margin: 0;
   padding: 0;
-}
-
-input[type="range"] {
-  accent-color: #3b82f6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 mark {
   background-color: #fef08a;
-  padding: 0 2px;
-  border-radius: 2px;
+  color: #713f12;
+  padding: 0 3px;
+  border-radius: 3px;
+  font-weight: 500;
 }
 
+.dark mark {
+  background-color: #854d0e;
+  color: #fef08a;
+}
 
-/* ── Utility classes (referenced throughout components) ────────────────────── */
+/* ── Range Slider Customization ────────────────────────────────────────────── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
 
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: #e2e8f0;
+}
+
+.dark input[type="range"]::-webkit-slider-runnable-track {
+  background: #334155;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #2563eb;
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  margin-top: -6px;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.dark input[type="range"]::-webkit-slider-thumb {
+  background: #3b82f6;
+  border-color: #0f172a;
+}
+
+input[type="range"]:hover::-webkit-slider-thumb {
+  transform: scale(1.15);
+  background: #1d4ed8;
+}
+
+input[type="range"]:focus {
+  outline: none;
+}
+
+/* ── Brand Utilities ───────────────────────────────────────────────────────── */
 .gradient-brand {
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 50%, #2563eb 100%);
 }
 
-.gradient-bg {
-  background: linear-gradient(160deg, #0a1628 0%, #0f1f3d 55%, #1a3260 100%);
+.gradient-dark-accent {
+  background: linear-gradient(135deg, #0a1628 0%, #0f1f3d 60%, #1a3260 100%);
+}
+
+.card-investigation {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dark .card-investigation {
+  background-color: #0f172a;
+  border-color: #1e293b;
 }
 
 /* ── Animations ────────────────────────────────────────────────────────────── */
-
-/* Spinner — used on loading overlays */
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
@@ -55,36 +116,39 @@ mark {
   animation: spin 0.8s linear infinite;
 }
 
-/* Fade-in — used on flash messages and expandable cards */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-4px); }
   to   { opacity: 1; transform: none; }
 }
 .fade-in {
-  animation: fadeIn 0.2s ease;
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Orb pulse — used on the login page background decorations */
-@keyframes orbPulse {
-  0%, 100% { transform: scale(1);   opacity: 0.6; }
-  50%       { transform: scale(1.08); opacity: 1;   }
-}
-.orb {
-  animation: orbPulse 6s ease-in-out infinite;
-}
-
-/* Slide-up — generic entrance animation for cards */
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: none; }
 }
 .slide-up {
-  animation: slideUp 0.3s ease forwards;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* ── Scrollbar theming ─────────────────────────────────────────────────────── */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.05); }
+}
+.pulse-glow {
+  animation: pulseGlow 2.5s ease-in-out infinite;
+}
 
-/* Sidebar thin scrollbar */
+@keyframes radarSweep {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.radar-sweep {
+  animation: radarSweep 3s linear infinite;
+}
+
+/* ── Scrollbars ────────────────────────────────────────────────────────────── */
 .sidebar-scrollbar::-webkit-scrollbar {
   width: 4px;
 }
@@ -93,17 +157,19 @@ mark {
   border-radius: 4px;
 }
 
-/* Global subtle scrollbar for main content area */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 4px;
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;

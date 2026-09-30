@@ -25,7 +25,7 @@ def check_document_coherence(victim_text: str, evidence_text: str, suspect_score
        If similarity < 0.10 -> victim_evidence_mismatch = True.
     2. Look at suspect_scores (already computed list of scored suspects).
        Find the highest final_score among all suspects.
-       If highest final_score < 0.15 -> all_suspects_low_overlap = True.
+       If highest final_score < 0.22 -> all_suspects_low_overlap = True.
     """
     clean_victim = preprocess(victim_text or "")
     clean_evidence = preprocess(evidence_text or "")
@@ -43,7 +43,7 @@ def check_document_coherence(victim_text: str, evidence_text: str, suspect_score
         highest_suspect_score = 0.0
 
     highest_suspect_score = float(round(highest_suspect_score, 4))
-    all_suspects_low_overlap = bool(highest_suspect_score < 0.15)
+    all_suspects_low_overlap = bool(highest_suspect_score < 0.22)
 
     return {
         "victim_evidence_mismatch": victim_evidence_mismatch,

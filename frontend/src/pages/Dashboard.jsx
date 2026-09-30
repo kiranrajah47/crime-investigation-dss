@@ -4,7 +4,27 @@ import Layout from '../components/Layout';
 import StatCard from '../components/StatCard';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import { FileText, Users, Calendar, Upload } from 'lucide-react';
+import {
+  FileText,
+  Users,
+  Calendar,
+  Upload,
+  ShieldAlert,
+  Fingerprint,
+  UserCheck,
+  CheckCircle2,
+  X,
+  RotateCcw,
+  Sparkles,
+  HelpCircle,
+  ArrowRight,
+  Sliders,
+  Cpu,
+  Binary,
+  Award,
+  Info,
+  FolderOpen
+} from 'lucide-react';
 
 const Dashboard = () => {
   const { showFlash } = useAuth();
@@ -23,13 +43,20 @@ const Dashboard = () => {
   const [evidenceFile, setEvidenceFile] = useState(null);
   const [suspectsFile, setSuspectsFile] = useState(null);
 
+  // Drag over states for the 3 dropzones
+  const [dragOverVictim, setDragOverVictim] = useState(false);
+  const [dragOverEvidence, setDragOverEvidence] = useState(false);
+  const [dragOverSuspects, setDragOverSuspects] = useState(false);
+
   // Weights state
   const [wPhysical, setWPhysical] = useState(0.55);
   const [wWitness, setWWitness] = useState(0.35);
   const [wHistory, setWHistory] = useState(0.25);
   const [wAlibi, setWAlibi] = useState(0.25);
+  const [activePreset, setActivePreset] = useState('Default');
 
   const [submitting, setSubmitting] = useState(false);
+  const [showFormatGuide, setShowFormatGuide] = useState(false);
 
   // Fetch stats on mount
   useEffect(() => {
@@ -44,7 +71,8 @@ const Dashboard = () => {
     fetchStats();
   }, []);
 
-  const applyPreset = (p, w, h, a) => {
+  const applyPreset = (presetName, p, w, h, a) => {
+    setActivePreset(presetName);
     setWPhysical(p);
     setWWitness(w);
     setWHistory(h);
@@ -52,46 +80,63 @@ const Dashboard = () => {
   };
 
   const resetWeights = () => {
-    applyPreset(0.55, 0.35, 0.25, 0.25);
+    applyPreset('Default', 0.55, 0.35, 0.25, 0.25);
   };
 
   const presets = [
     {
       name: 'Default',
       weights: [0.55, 0.35, 0.25, 0.25],
-      tip: 'Balanced weights for general investigation. Use when case type is unknown.'
+      tip: 'Balanced weights for general investigations. Recommended when case type is broad.'
     },
     {
       name: 'Physical assault',
       weights: [0.75, 0.35, 0.25, 0.35],
-      tip: 'High weight on forensic & physical evidence. Suitable for violent crimes.'
+      tip: 'High weight on forensic & physical evidence. Suitable for violent confrontations.'
+    },
+    {
+      name: 'Murder',
+      weights: [0.80, 0.10, 0.45, 0.25],
+      tip: 'Calibrated against graded relevance labels. Prioritises forensic traces with strong alibi penalty.'
     },
     {
       name: 'Financial fraud',
       weights: [0.20, 0.40, 0.55, 0.20],
-      tip: 'Emphasises past history and financial conflict. Use when physical evidence is minimal.'
+      tip: 'Emphasises past record and financial conflict. Ideal when physical crime scene evidence is minimal.'
     },
     {
       name: 'Kidnapping',
       weights: [0.55, 0.50, 0.30, 0.40],
-      tip: 'Balances physical evidence with witness identification. High alibi weight — a confirmed alibi during the abduction window strongly clears a suspect.'
+      tip: 'Balances physical evidence with eyewitness sightings. Verified alibi heavily clears suspects.'
     },
     {
       name: 'Drug trafficking',
       weights: [0.65, 0.35, 0.40, 0.25],
-      tip: 'Weighted toward physical seizures, financial trails, and digital evidence. Past history of narcotics offences carries strong weight.'
+      tip: 'Weighted toward physical contraband seizures, transit logs, and narcotics arrest history.'
     },
     {
       name: 'Harassment',
       weights: [0.25, 0.55, 0.40, 0.20],
-      tip: 'Prioritises witness accounts and past conflict patterns over physical evidence.'
+      tip: 'Prioritises witness accounts, victim interaction logs, and repeat conflict patterns.'
     },
     {
       name: 'Cybercrime',
       weights: [0.50, 0.20, 0.45, 0.10],
-      tip: 'Physical evidence here means digital forensics — logs, IPs, devices. Alibi is nearly irrelevant since cybercrime needs no physical presence.'
+      tip: 'Digital forensics (IP logs, device artifacts). Physical presence alibis carry minimal relevance.'
     }
   ];
+
+  const formatFileSize = (bytes) => {
+    if (!bytes) return '0 KB';
+    const kb = bytes / 1024;
+    return kb >= 1000 ? `${(kb / 1024).toFixed(1)} MB` : `${kb.toFixed(1)} KB`;
+  };
+
+  const getFileExtension = (filename) => {
+    if (!filename) return '';
+    const parts = filename.split('.');
+    return parts.length > 1 ? parts.pop().toUpperCase() : 'DOC';
+  };
 
   const toTitleCase = (str) =>
     str.replace(/\b\w/g, (c) => c.toUpperCase());
@@ -99,7 +144,7 @@ const Dashboard = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!victimFile || !evidenceFile || !suspectsFile) {
-      showFlash('Please upload all 3 documents.', 'error');
+      showFlash('Please upload all 3 investigative documents.', 'error');
       return;
     }
 
@@ -136,19 +181,212 @@ const Dashboard = () => {
     }
   };
 
+  // Helper component for Document Upload Card
+  const UploadCard = ({
+    docNumber,
+    title,
+    subtitle,
+    icon: Icon,
+    color,
+    file,
+    setFile,
+    isDragOver,
+    setIsDragOver
+  }) => {
+    const handleDragOver = (e) => {
+      e.preventDefault();
+      setIsDragOver(true);
+    };
+
+    const handleDragLeave = (e) => {
+      e.preventDefault();
+      setIsDragOver(false);
+    };
+
+    const handleDrop = (e) => {
+      e.preventDefault();
+      setIsDragOver(false);
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        setFile(e.dataTransfer.files[0]);
+      }
+    };
+
+    const colors = {
+      blue: {
+        iconBg: 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900',
+        badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300',
+        activeBorder: 'border-blue-500 bg-blue-50/40 dark:bg-blue-950/20'
+      },
+      emerald: {
+        iconBg: 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900',
+        badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300',
+        activeBorder: 'border-emerald-500 bg-emerald-50/40 dark:bg-emerald-950/20'
+      },
+      indigo: {
+        iconBg: 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900',
+        badge: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300',
+        activeBorder: 'border-indigo-500 bg-indigo-50/40 dark:bg-indigo-950/20'
+      }
+    };
+
+    const theme = colors[color] || colors.blue;
+
+    return (
+      <div className="bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-xl p-4 transition-all">
+        <div className="flex items-start justify-between gap-3 mb-2.5">
+          <div className="flex items-center gap-2.5">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 border ${theme.iconBg}`}>
+              <Icon className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+                  DOC 0{docNumber}
+                </span>
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                  {title}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
+                {subtitle}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Upload Zone or Uploaded State */}
+        {!file ? (
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`relative border-2 border-dashed rounded-lg p-3 text-center transition-all ${
+              isDragOver
+                ? `${theme.activeBorder}`
+                : 'border-slate-200 dark:border-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800/60'
+            }`}
+          >
+            <input
+              type="file"
+              accept=".txt,.docx,.pdf"
+              required
+              onChange={(e) => setFile(e.target.files[0])}
+              className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
+            />
+            <div className="flex items-center justify-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+              <FolderOpen className="w-4 h-4 text-slate-400" />
+              <span>
+                <strong className="text-blue-600 dark:text-blue-400 underline font-medium">Browse file</strong> or drag &amp; drop
+              </span>
+            </div>
+            <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-mono">
+              Accepts .txt, .pdf, .docx
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-semibold text-slate-800 dark:text-slate-100 truncate" title={file.name}>
+                  {file.name}
+                </div>
+                <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400 dark:text-slate-500 mt-0.5">
+                  <span className="uppercase font-bold text-slate-600 dark:text-slate-300">
+                    {getFileExtension(file.name)}
+                  </span>
+                  <span>•</span>
+                  <span>{formatFileSize(file.size)}</span>
+                  <span>•</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-medium">Ready</span>
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setFile(null)}
+              className="w-7 h-7 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-rose-600 flex items-center justify-center transition-colors cursor-pointer border-0"
+              title="Remove file"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <Layout title="New case analysis">
-      {/* Loading overlay */}
+    <Layout title="New Case Investigation">
+      {/* Loading Overlay */}
       {submitting && (
-        <div className="fixed inset-0 z-[9999] bg-navy-900/80 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
-          <div className="w-12 h-12 rounded-full border-4 border-white/20 border-t-blue-500 spinner"></div>
-          <div className="text-white font-semibold text-base">Analysing documents…</div>
-          <div className="text-slate-400 text-sm -mt-2">Running NLP pipeline. This may take a few seconds.</div>
+        <div className="fixed inset-0 z-[9999] bg-navy-950/85 backdrop-blur-md flex flex-col items-center justify-center gap-5">
+          <div className="relative">
+            <div className="w-16 h-16 rounded-full border-4 border-blue-500/20 border-t-blue-500 spinner"></div>
+            <div className="absolute inset-0 flex items-center justify-center text-blue-400">
+              <Sparkles className="w-6 h-6 animate-pulse" />
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-white font-bold text-lg tracking-tight">Processing Case Intelligence...</div>
+            <div className="text-slate-400 text-xs mt-1 max-w-sm mx-auto">
+              Parsing documents, extracting TF-IDF semantic vectors, scoring alibi penalties &amp; evaluating suspect rankings.
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Stats strip */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+      {/* Analysis Pipeline Tracker */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 mb-6 shadow-xs">
+        <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-2">
+            <Cpu className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 font-mono">
+              Investigation Analysis Pipeline
+            </span>
+          </div>
+          <span className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">
+            TF-IDF + Cosine Similarity Core
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-left">
+          {[
+            { step: '01', name: 'Document Ingestion', desc: 'Victim, Evidence & Suspects', icon: FolderOpen, active: true },
+            { step: '02', name: 'Evidence Processing', desc: 'Tokenization & Stopwords', icon: Cpu, active: false },
+            { step: '03', name: 'Suspect Analysis', desc: 'Vectorization & Alibi Check', icon: Binary, active: false },
+            { step: '04', name: 'Ranking & Report', desc: 'Guilt Score & Intelligence', icon: Award, active: false }
+          ].map((item, i) => {
+            const StepIcon = item.icon;
+            return (
+              <div
+                key={i}
+                className={`p-3 rounded-lg border transition-all ${
+                  item.active
+                    ? 'bg-blue-50/70 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900/60'
+                    : 'bg-slate-50/50 dark:bg-slate-800/30 border-slate-200/70 dark:border-slate-800/60 opacity-80'
+                }`}
+              >
+                <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 dark:text-slate-500 mb-1">
+                  <span>STEP {item.step}</span>
+                  <StepIcon className={`w-3.5 h-3.5 ${item.active ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'}`} />
+                </div>
+                <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                  {item.name}
+                </div>
+                <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  {item.desc}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Executive Stat Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <StatCard
           title="Total cases run"
           value={stats.total_cases}
@@ -170,290 +408,357 @@ const Dashboard = () => {
         />
       </div>
 
-      {/* Main upload card */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 text-left"><div className="lg:col-span-3">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
-          <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">Upload case documents</h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Upload 3 documents — the system will analyse and rank suspects automatically.</p>
-            </div>
-            <div className="w-8 h-8 gradient-brand rounded-lg flex items-center justify-center text-white">
-              <Upload className="w-4 h-4" />
+      {/* Main Investigation Input Form */}
+      <form onSubmit={handleSubmit} className="space-y-6 text-left">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          {/* Left Column: Case Setup & Document Dossiers (7 cols) */}
+          <div className="lg:col-span-7 space-y-5">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div>
+                  <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                    Case Setup &amp; Investigation Dossiers
+                  </h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Upload the three primary case components for automated cross-referencing.
+                  </p>
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 font-semibold">
+                  Required
+                </span>
+              </div>
+
+              <div className="p-6 space-y-4">
+                {/* Case Title Input */}
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5 font-mono">
+                    Case Title / Incident Tag <span className="font-sans font-normal text-slate-400">(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={caseTitle}
+                    onChange={(e) => setCaseTitle(e.target.value)}
+                    placeholder="e.g. MG Road Commercial Warehouse Heist — April 2026"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+                  />
+                </div>
+
+                {/* 3 Upload Cards */}
+                <div className="space-y-3 pt-1">
+                  <UploadCard
+                    docNumber={1}
+                    title="Victim & Incident Details"
+                    subtitle="Victim profile, discovery state, date/time, crime scene observations"
+                    icon={ShieldAlert}
+                    color="blue"
+                    file={victimFile}
+                    setFile={setVictimFile}
+                    isDragOver={dragOverVictim}
+                    setIsDragOver={setDragOverVictim}
+                  />
+
+                  <UploadCard
+                    docNumber={2}
+                    title="Forensic & Physical Evidence"
+                    subtitle="Fingerprints, CCTV logs, weapon reports, forensic items recovered"
+                    icon={Fingerprint}
+                    color="emerald"
+                    file={evidenceFile}
+                    setFile={setEvidenceFile}
+                    isDragOver={dragOverEvidence}
+                    setIsDragOver={setDragOverEvidence}
+                  />
+
+                  <UploadCard
+                    docNumber={3}
+                    title="Suspect Profiles & Alibis"
+                    subtitle="Profiles formatted with 'SUSPECT: Name', prior history & verified alibis"
+                    icon={Users}
+                    color="indigo"
+                    file={suspectsFile}
+                    setFile={setSuspectsFile}
+                    isDragOver={dragOverSuspects}
+                    setIsDragOver={setDragOverSuspects}
+                  />
+                </div>
+
+                {/* Format Guidance Toggle */}
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowFormatGuide(!showFormatGuide)}
+                    className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold cursor-pointer border-0 bg-transparent p-0"
+                  >
+                    <Info className="w-3.5 h-3.5" />
+                    <span>{showFormatGuide ? 'Hide Document 3 Format Guidelines' : 'View Document 3 Formatting Guide'}</span>
+                  </button>
+
+                  {showFormatGuide && (
+                    <div className="mt-2.5 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-xs fade-in">
+                      <div className="font-bold text-slate-700 dark:text-slate-200 mb-1.5 font-mono text-[11px]">
+                        Required format for Document 3 (Plain Text):
+                      </div>
+                      <pre className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 text-[11px] font-mono leading-relaxed overflow-x-auto whitespace-pre">
+{`SUSPECT: Rajan Shetty
+Rajan was a former associate of the victim.
+Had an ongoing financial grievance.
+Alibi: Claimed he was at an airport terminal at 10 PM.
+
+SUSPECT: Meera Nair
+Meera had past business disputes with the victim.
+No direct weapon or fingerprint correlation at scene.`}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="px-6 py-6">
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Case title */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
-                  Case title <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span>
-                </label>
-                <input
-                  type="text"
-                  value={caseTitle}
-                  onChange={(e) => setCaseTitle(e.target.value)}
-                  placeholder="e.g. MG Road Warehouse Incident — April 2026"
-                  className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 transition-all outline-none"
-                />
+          {/* Right Column: Evidence Weight Tuning (5 cols) */}
+          <div className="lg:col-span-5 space-y-5">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sliders className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                    Evidence Weight Matrix
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={resetWeights}
+                  className="flex items-center gap-1 text-[11px] text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg px-2.5 py-1 transition-all cursor-pointer border-0 font-medium"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  Reset
+                </button>
               </div>
 
-              {/* Document 1 */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
-                  Document 1 — Victim details &amp; incident
-                </label>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 leading-relaxed">
-                  Describe the victim, how they were found, time, location, and immediate observations.
+              <div className="p-6 space-y-5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Calibrate the DSS algorithm to assign proportional weight to different evidence streams.
                 </p>
-                <div className="flex items-center gap-3 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 bg-slate-50 dark:bg-slate-800/50 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50/40 dark:hover:bg-blue-900/20 transition-all duration-200 group">
-                  <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-bold flex items-center justify-center flex-shrink-0">
-                    1
+
+                {/* Preset Profiles */}
+                <div>
+                  <div className="text-[10px] font-mono uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+                    Investigation Presets
                   </div>
-                  <input
-                    type="file"
-                    accept=".txt,.docx,.pdf"
-                    required
-                    onChange={(e) => setVictimFile(e.target.files[0])}
-                    className="w-full text-sm text-slate-500 dark:text-slate-400 cursor-pointer file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-100 dark:file:bg-blue-900/40 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-200"
-                  />
-                </div>
-              </div>
-
-              {/* Document 2 */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
-                  Document 2 — Evidence recovered
-                </label>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 leading-relaxed">
-                  List all physical evidence, CCTV details, witness statements, and forensic notes.
-                </p>
-                <div className="flex items-center gap-3 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 bg-slate-50 dark:bg-slate-800/50 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50/40 dark:hover:bg-blue-900/20 transition-all duration-200">
-                  <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-bold flex items-center justify-center flex-shrink-0">
-                    2
+                  <div className="flex flex-wrap gap-1.5">
+                    {presets.map((preset) => (
+                      <div key={preset.name} className="relative group">
+                        <button
+                          type="button"
+                          onClick={() => applyPreset(preset.name, ...preset.weights)}
+                          className={`text-xs px-2.5 py-1 rounded-lg border transition-all cursor-pointer font-medium ${
+                            activePreset === preset.name
+                              ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                              : 'bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                          }`}
+                        >
+                          {preset.name}
+                        </button>
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-navy-950 text-white text-[11px] leading-snug rounded-lg px-3 py-2 text-center shadow-xl z-20 pointer-events-none border border-navy-800">
+                          {preset.tip}
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-navy-950"></div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <input
-                    type="file"
-                    accept=".txt,.docx,.pdf"
-                    required
-                    onChange={(e) => setEvidenceFile(e.target.files[0])}
-                    className="w-full text-sm text-slate-500 dark:text-slate-400 cursor-pointer file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-100 dark:file:bg-blue-900/40 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-200"
-                  />
                 </div>
-              </div>
 
-              {/* Document 3 */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
-                  Document 3 — Suspect profiles
-                </label>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 leading-relaxed">
-                  Each suspect section must start with <strong className="text-slate-700 dark:text-slate-200">SUSPECT: Name</strong> on its own line.
-                </p>
-                <div className="flex items-center gap-3 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 bg-slate-50 dark:bg-slate-800/50 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50/40 dark:hover:bg-blue-900/20 transition-all duration-200">
-                  <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-bold flex items-center justify-center flex-shrink-0">
-                    3
-                  </div>
-                  <input
-                    type="file"
-                    accept=".txt,.docx,.pdf"
-                    required
-                    onChange={(e) => setSuspectsFile(e.target.files[0])}
-                    className="w-full text-sm text-slate-500 dark:text-slate-400 cursor-pointer file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-100 dark:file:bg-blue-900/40 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-200"
-                  />
-                </div>
-              </div>
-
-              {/* Format box */}
-              <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-mono">
-                <strong className="text-slate-700 dark:text-slate-200 font-sans">Required format for Document 3:</strong>
-                <pre className="mt-2 bg-slate-100 dark:bg-slate-800 rounded-lg px-3 py-2 text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed overflow-x-auto whitespace-pre">
-{`SUSPECT: Rajan Shetty
-Rajan was a colleague of the victim...
-He had an ongoing financial dispute...
-
-SUSPECT: Meera Nair
-Meera had a prior conflict with the victim...
-No physical evidence links her directly...`}
-                </pre>
-              </div>
-
-              {/* Evidence weight sliders */}
-              <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-5 py-4">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">Evidence weights</span>
-                  <button
-                    type="button"
-                    onClick={resetWeights}
-                    className="text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all cursor-pointer font-medium"
-                  >
-                    Reset to default
-                  </button>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed font-sans">
-                  Adjust how much each evidence type contributes to the final score. Choose a preset below or customise manually.
-                </p>
-
-                {/* Slider rows */}
-                <div className="space-y-4 font-sans">
+                {/* Sliders */}
+                <div className="space-y-4 pt-2">
                   {[
                     {
                       id: 'w_physical',
                       val: wPhysical,
                       setVal: setWPhysical,
-                      label: 'Physical evidence',
-                      desc: 'Fingerprints, CCTV footage, weapons, forensic findings'
+                      label: 'Physical Evidence Weight',
+                      tag: 'Forensics / CCTV / Weapons',
+                      desc: 'Similarity of suspect profile to physical seized items and crime scene trace evidence.'
                     },
                     {
                       id: 'w_witness',
                       val: wWitness,
                       setVal: setWWitness,
-                      label: 'Witness statements',
-                      desc: 'Eyewitness accounts and victim connections'
+                      label: 'Witness Statements Weight',
+                      tag: 'Testimony / Victim Link',
+                      desc: 'Correlation with eyewitness reports, victim grievances, and relationship history.'
                     },
                     {
                       id: 'w_history',
                       val: wHistory,
                       setVal: setWHistory,
-                      label: 'Past history',
-                      desc: 'Prior criminal record and conflict history'
+                      label: 'Past Criminal History Weight',
+                      tag: 'Prior Records / MO',
+                      desc: 'Weight given to prior criminal record, identical modus operandi, and repeat offenses.'
                     },
                     {
                       id: 'w_alibi',
                       val: wAlibi,
                       setVal: setWAlibi,
-                      label: 'Alibi penalty',
-                      desc: "How much a verified alibi reduces the suspect's score"
+                      label: 'Alibi Exoneration Penalty',
+                      tag: 'Score Deduction',
+                      desc: 'Magnitude of penalty subtracted from final score when verified alibis are corroborated.'
                     }
                   ].map((slider) => (
-                    <div key={slider.id}>
-                      <div className="flex justify-between items-center mb-0.5">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-200">{slider.label}</label>
-                        <span className="text-sm font-bold text-blue-600 dark:text-blue-400 min-w-[36px] text-right">
+                    <div
+                      key={slider.id}
+                      className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/80"
+                    >
+                      <div className="flex justify-between items-center mb-1">
+                        <div>
+                          <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                            {slider.label}
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500 ml-2">
+                            {slider.tag}
+                          </span>
+                        </div>
+                        <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300">
                           {slider.val.toFixed(2)}
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-1.5">{slider.desc}</p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2 leading-tight">
+                        {slider.desc}
+                      </p>
                       <input
                         type="range"
                         min="0"
                         max="1"
                         step="0.05"
                         value={slider.val}
-                        onChange={(e) => slider.setVal(parseFloat(e.target.value))}
-                        className="w-full h-1.5 accent-blue-500 cursor-pointer"
+                        onChange={(e) => {
+                          setActivePreset('Custom');
+                          slider.setVal(parseFloat(e.target.value));
+                        }}
+                        className="w-full accent-blue-600 cursor-pointer"
                       />
                     </div>
                   ))}
                 </div>
-
-                {/* Presets */}
-                <div className="flex flex-wrap gap-2 items-center pt-4 mt-4 border-t border-slate-200 dark:border-slate-700 font-sans">
-                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Presets:</span>
-                  {presets.map((preset, idx) => (
-                    <div key={idx} className="relative group">
-                      <button
-                        type="button"
-                        onClick={() => applyPreset(...preset.weights)}
-                        className="text-xs px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all duration-150 cursor-pointer"
-                      >
-                        {preset.name}
-                      </button>
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-52 bg-slate-800 text-white text-[11px] leading-snug rounded-lg px-3 py-2 text-center shadow-xl z-10 pointer-events-none">
-                        {preset.tip}
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </div>
-
-              {/* Submit */}
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full py-3.5 gradient-brand text-white font-semibold text-sm rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:brightness-110 transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-              >
-                <Upload className="w-4 h-4" />
-                Analyse Documents
-              </button>
-            </form>
-
-            <p className="text-[11px] text-slate-400 dark:text-slate-500 text-center mt-4 leading-relaxed font-sans">
-              This system is a decision-support tool only. All investigative decisions must be made
-              by a qualified human investigator.
-            </p>
+            </div>
           </div>
         </div>
-        </div>
 
-        {/* Right column: Info panel (2/5 width) */}
-        <div className="lg:col-span-2 flex flex-col gap-5">
-          {/* How it works */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden text-left">
-            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">How it works</h3>
+        {/* Action Button & Prominent Submission Section */}
+        <div className="bg-gradient-to-r from-blue-900 via-navy-900 to-navy-950 rounded-2xl p-6 shadow-xl border border-blue-800/40 text-white flex flex-col sm:flex-row items-center justify-between gap-5">
+          <div className="text-left">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <span className="text-xs font-mono uppercase tracking-wider text-blue-300 font-semibold">
+                Decision-Support Ready
+              </span>
             </div>
-            <div className="px-5 py-4 space-y-4">
+            <h3 className="text-base font-bold text-white mt-1">
+              Execute Intelligence Analysis
+            </h3>
+            <p className="text-xs text-slate-300 max-w-xl mt-0.5">
+              Processes the 3 investigative dossiers through the NLP scoring model to compute cosine relevance rankings.
+            </p>
+          </div>
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-600/30 hover:shadow-blue-500/50 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 flex-shrink-0"
+          >
+            <Sparkles className="w-4 h-4 text-white" />
+            <span>Analyze Case Dossier</span>
+            <ArrowRight className="w-4 h-4 text-blue-200" />
+          </button>
+        </div>
+      </form>
+
+      {/* Auxiliary Intelligence Guidelines Below */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-6 text-left">
+        {/* How it works */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+          <div>
+            <h3 className="text-xs font-mono uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 mb-3">
+              How the DSS Works
+            </h3>
+            <div className="space-y-3">
               {[
-                { step: '1', title: 'Upload 3 documents', desc: 'Victim & incident details, evidence recovered, and suspect profiles in plain text.' },
-                { step: '2', title: 'Configure weights', desc: 'Adjust how much physical evidence, witness statements, past history, and alibis affect scores.' },
-                { step: '3', title: 'AI analyses & ranks', desc: 'The NLP pipeline extracts features and computes a guilt-likelihood score for each suspect.' },
-                { step: '4', title: 'Review results', desc: 'Suspects are ranked with justification. Download a PDF report for your records.' }
+                { step: '1', title: 'Text Preprocessing', desc: 'Case narratives are tokenized, normalized, and cleared of legal and general stopwords.' },
+                { step: '2', title: 'TF-IDF Matrix Creation', desc: 'Terms are weighted to spotlight unique physical and witness correlations.' },
+                { step: '3', title: 'Cosine Similarity', desc: 'Mathematical distance between suspect profiles and evidence files is computed.' },
+                { step: '4', title: 'Weighted Guilt Scoring', desc: 'Weights and alibi penalties compute the calibrated guilt likelihood.' }
               ].map((item) => (
-                <div key={item.step} className="flex gap-3">
-                  <div className="w-6 h-6 rounded-full gradient-brand text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{item.step}</div>
+                <div key={item.step} className="flex gap-2.5 items-start">
+                  <div className="w-5 h-5 rounded-md bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-[11px] font-bold font-mono flex items-center justify-center flex-shrink-0 mt-0.5">
+                    {item.step}
+                  </div>
                   <div>
-                    <div className="text-sm font-semibold text-slate-700 dark:text-slate-200 font-sans">{item.title}</div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed font-sans">{item.desc}</div>
+                    <div className="text-xs font-bold text-slate-800 dark:text-slate-200">{item.title}</div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{item.desc}</div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
+        </div>
 
-          {/* Tips card */}
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 border border-blue-100 dark:border-blue-900/50 rounded-2xl shadow-sm px-5 py-4 text-left">
-            <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-3 font-sans">Tips for best results</h3>
-            <ul className="space-y-2 font-sans">
+        {/* Investigative Best Practices */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+          <div>
+            <h3 className="text-xs font-mono uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 mb-3">
+              Investigative Best Practices
+            </h3>
+            <ul className="space-y-2.5 p-0 m-0 list-none">
               {[
-                'Use plain .txt files for fastest processing.',
-                'Each suspect must start with "SUSPECT: Name" on its own line.',
-                'More detail in suspect profiles yields more accurate scores.',
-                'Use the Financial Fraud preset for white-collar cases.'
+                'Ensure Document 3 lists each suspect with "SUSPECT: Name" on a dedicated line.',
+                'Specify concrete physical items (e.g. 9mm shell casing, blue sedan, Rolex).',
+                'Explicitly note alibi confirmations or alibi refutations in suspect briefs.',
+                'Review confidence gap warnings when top two suspects have score variance < 0.08.'
               ].map((tip, i) => (
-                <li key={i} className="flex gap-2 text-xs text-blue-700 dark:text-blue-300">
-                  <span className="text-blue-400 dark:text-blue-400 mt-0.5">→</span>
-                  <span className="leading-relaxed">{tip}</span>
+                <li key={i} className="flex gap-2 text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                  <span className="text-blue-500 font-bold">•</span>
+                  <span>{tip}</span>
                 </li>
               ))}
             </ul>
           </div>
+        </div>
 
-          {/* Priority scale legend */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm px-5 py-4 text-left">
-            <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-3 font-sans">Score interpretation</h3>
-            <div className="space-y-2.5 font-sans">
-              <div className="flex items-center gap-3">
-                <span className="w-3 h-3 rounded-full bg-red-500 flex-shrink-0"></span>
-                <div>
-                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">Primary suspect</span>
-                  <span className="text-xs text-slate-400 dark:text-slate-500 ml-1">(≥ 0.55)</span>
+        {/* Priority Scale Classification */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+          <div>
+            <h3 className="text-xs font-mono uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 mb-3">
+              Score Interpretation
+            </h3>
+            <div className="space-y-3">
+              <div className="p-2.5 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60">
+                <div className="flex items-center justify-between text-xs font-bold text-red-700 dark:text-red-300">
+                  <span>Primary Suspect</span>
+                  <span className="font-mono">≥ 0.55</span>
+                </div>
+                <div className="text-[10px] text-red-600/80 dark:text-red-400/80 mt-0.5">
+                  High correlation across physical and circumstantial evidence.
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="w-3 h-3 rounded-full bg-amber-500 flex-shrink-0"></span>
-                <div>
-                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">Secondary suspect</span>
-                  <span className="text-xs text-slate-400 dark:text-slate-500 ml-1">(0.30 – 0.54)</span>
+
+              <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60">
+                <div className="flex items-center justify-between text-xs font-bold text-amber-700 dark:text-amber-300">
+                  <span>Secondary Suspect</span>
+                  <span className="font-mono">0.30 – 0.54</span>
+                </div>
+                <div className="text-[10px] text-amber-600/80 dark:text-amber-400/80 mt-0.5">
+                  Moderate link; requires deeper corroboration or alibi verification.
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="w-3 h-3 rounded-full bg-emerald-500 flex-shrink-0"></span>
-                <div>
-                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">Low concern</span>
-                  <span className="text-xs text-slate-400 dark:text-slate-500 ml-1">(&lt; 0.30)</span>
+
+              <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60">
+                <div className="flex items-center justify-between text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                  <span>Low Concern</span>
+                  <span className="font-mono">&lt; 0.30</span>
+                </div>
+                <div className="text-[10px] text-emerald-600/80 dark:text-emerald-400/80 mt-0.5">
+                  Weak correlation or corroborated alibi substantially clearing the subject.
                 </div>
               </div>
             </div>

@@ -1,0 +1,6 @@
+{
+  "physical_evidence": 0.8,
+  "witness_statement": 0.1,
+  "past_history": 0.45,
+  "alibi_penalty": 0.25
+}

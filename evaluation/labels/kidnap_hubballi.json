@@ -1,0 +1,25 @@
+{
+  "case_id": "kidnap_hubballi",
+  "description": "Kidnapping case in Hubballi — TEST SET (frozen before V2 scoring)",
+  "db_case_id": 32,
+  "labels": {
+    "Sanjay Patil": 3,
+    "Ganesh Shinde": 3,
+    "Yusuf Sait": 2,
+    "Vithal Naik": 2,
+    "Shivanand Hosamani": 1,
+    "Prakash Jadhav": 1,
+    "Ashok Bhat": 1,
+    "Amit Kulkarni": 0,
+    "Latha Hiremath": 0,
+    "Mohan Desai": 0,
+    "Rohini Kulkarni": 0,
+    "Deepti Nadkarni": 0
+  },
+  "label_scale": {
+    "3": "Strongly implicated — primary suspect",
+    "2": "Plausibly involved — secondary suspect",
+    "1": "Peripheral / weak link",
+    "0": "Not involved — should rank low"
+  }
+}

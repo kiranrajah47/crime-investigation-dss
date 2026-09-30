@@ -1,0 +1,25 @@
+{
+  "case_id": "murder_mysuru",
+  "description": "Murder case in Mysuru — TEST SET (frozen before V2 scoring)",
+  "db_case_id": 29,
+  "labels": {
+    "Ravi Gowda": 3,
+    "Manjunath Naik": 3,
+    "Vasu Gowda": 2,
+    "Karthik Hegde": 1,
+    "Dinesh Rao": 1,
+    "Shalini Hegde": 1,
+    "Imran Pasha": 0,
+    "Mahadev Swamy": 0,
+    "Suresh Kumar": 0,
+    "Basavaiah": 0,
+    "Nandini Rao": 0,
+    "Anjali Hegde": 0
+  },
+  "label_scale": {
+    "3": "Strongly implicated — primary suspect",
+    "2": "Plausibly involved — secondary suspect",
+    "1": "Peripheral / weak link",
+    "0": "Not involved — should rank low"
+  }
+}

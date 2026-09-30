@@ -1,0 +1,24 @@
+{
+  "case_id": "drugs_goa",
+  "description": "Drug trafficking case in Goa — TEST SET (frozen before V2 scoring)",
+  "db_case_id": null,
+  "labels": {
+    "Victor DCosta": 3,
+    "Mikhail Petrov": 3,
+    "Rahul Naik": 2,
+    "Anthony Fernandes": 2,
+    "Dilip Borkar": 2,
+    "Yash Malhotra": 1,
+    "Sneha Kamat": 1,
+    "Prakash Gaonkar": 1,
+    "Carla Rodrigues": 0,
+    "Joseph Pinto": 0,
+    "Emily Watson": 0
+  },
+  "label_scale": {
+    "3": "Strongly implicated — primary suspect",
+    "2": "Plausibly involved — secondary suspect",
+    "1": "Peripheral / weak link",
+    "0": "Not involved — should rank low"
+  }
+}
