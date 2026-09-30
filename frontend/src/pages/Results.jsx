@@ -110,11 +110,31 @@ const Results = () => {
   const [error, setError] = useState(null);
   const [expandedIndex, setExpandedIndex] = useState(0); // #1 suspect expanded by default
 
-  // Optional Sentence-BERT state
-  const [showSbert, setShowSbert] = useState(false);
+  // Model comparison state (TF-IDF primary, Sentence-BERT secondary)
+  const [showSbert, setShowSbert] = useState(true);
   const [sbertData, setSbertData] = useState([]);
   const [sbertLoading, setSbertLoading] = useState(false);
   const [sbertError, setSbertError] = useState(null);
+
+  const fetchSbertComparison = async () => {
+    try {
+      setSbertLoading(true);
+      setSbertError(null);
+      const res = await axios.get(`/api/cases/${id}/sbert-comparison`);
+      if (Array.isArray(res.data)) {
+        setSbertData(res.data);
+      } else if (res.data && res.data.success === false) {
+        setSbertError(res.data.message || 'Sentence-BERT comparison failed.');
+      } else if (res.data && res.data.comparison) {
+        setSbertData(res.data.comparison);
+      }
+    } catch (err) {
+      console.warn('Sentence-BERT comparison fetch error', err);
+      setSbertError(err.response?.data?.message || 'Sentence-BERT features are currently unavailable.');
+    } finally {
+      setSbertLoading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -133,6 +153,9 @@ const Results = () => {
         } catch (repeatErr) {
           console.error('Failed to fetch repeat suspects', repeatErr);
         }
+
+        // Auto-fetch secondary Sentence-BERT comparison
+        fetchSbertComparison();
       } catch (err) {
         console.error('Failed to fetch case details', err);
         setError(err.response?.data?.message || 'Failed to load case results.');
@@ -158,33 +181,11 @@ const Results = () => {
     }
   };
 
-  const handleToggleSbert = async () => {
-    if (showSbert) {
-      setShowSbert(false);
-      return;
+  const handleToggleSbert = () => {
+    if (!showSbert && sbertData.length === 0 && !sbertLoading) {
+      fetchSbertComparison();
     }
-
-    setShowSbert(true);
-
-    if (sbertData.length === 0 && !sbertLoading) {
-      try {
-        setSbertLoading(true);
-        setSbertError(null);
-        const res = await axios.get(`/api/cases/${id}/sbert-comparison`);
-        if (Array.isArray(res.data)) {
-          setSbertData(res.data);
-        } else if (res.data && res.data.success === false) {
-          setSbertError(res.data.message || 'Sentence-BERT comparison failed.');
-        } else if (res.data && res.data.comparison) {
-          setSbertData(res.data.comparison);
-        }
-      } catch (err) {
-        console.error('Failed to fetch SBERT comparison', err);
-        setSbertError(err.response?.data?.message || 'Sentence-BERT features are currently unavailable.');
-      } finally {
-        setSbertLoading(false);
-      }
-    }
+    setShowSbert(!showSbert);
   };
 
   // ── Loading State ──────────────────────────────────────────────────────────
@@ -260,9 +261,9 @@ const Results = () => {
   if (topSuspect && topSuspect.score_breakdown) {
     const sb = topSuspect.score_breakdown;
     const factors = [
-      { name: 'Physical Evidence', val: sb.physical_evidence },
-      { name: 'Witness Link', val: sb.witness_statement },
-      { name: 'Past Record', val: sb.past_history },
+      { name: 'Evidence-Text Similarity', val: sb.physical_evidence },
+      { name: 'Victim/Witness Similarity', val: sb.witness_statement },
+      { name: 'Past History Match', val: sb.past_history },
     ];
     factors.sort((a, b) => b.val - a.val);
     strongestFactor = factors[0];
@@ -352,10 +353,10 @@ const Results = () => {
               Evidence Weights Applied
             </span>
             {[
-              { label: 'Physical Evidence', val: weightsUsed.physical_evidence },
-              { label: 'Witness Statements', val: weightsUsed.witness_statement },
-              { label: 'Past History', val: weightsUsed.past_history },
-              { label: 'Alibi Penalty', val: weightsUsed.alibi_penalty },
+              { label: 'Evidence-Text Similarity', val: weightsUsed.physical_evidence },
+              { label: 'Victim/Witness Similarity', val: weightsUsed.witness_statement },
+              { label: 'Past History Weight', val: weightsUsed.past_history },
+              { label: 'Alibi Verification Penalty', val: weightsUsed.alibi_penalty },
             ].map((w) => (
               <span key={w.label} className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300">
                 <span className="text-slate-500 dark:text-slate-400">{w.label}:</span>
@@ -432,28 +433,73 @@ const Results = () => {
         </IntelAlert>
       ))}
 
+      {/* ── Document Consistency Warning (Requirement 4) ──────────────────── */}
       {hasCoherenceWarning && (
-        <IntelAlert severity="critical" icon={XCircle} title="Document Mismatch Warning">
-          The uploaded documents show unusually low semantic overlap between victim, evidence, and suspect narratives.
-          This may indicate the files do not correspond to the same case. Verify all three documents before relying on these rankings.
-        </IntelAlert>
+        <div className="bg-amber-50 dark:bg-amber-950/40 border-l-4 border-amber-500 border border-amber-200 dark:border-amber-900/60 rounded-xl p-4 mb-4 text-xs shadow-xs fade-in">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <div className="font-bold text-amber-900 dark:text-amber-200 text-xs">
+                ⚠ Document consistency warning
+              </div>
+              <p className="text-amber-800 dark:text-amber-300 text-xs leading-relaxed m-0">
+                The uploaded documents show unusually low overlap. Verify that the victim, evidence and suspect documents belong to the same case before relying on the ranking.
+              </p>
+              {coherenceCheck?.victim_evidence_similarity !== undefined && (
+                <div className="text-[11px] font-mono text-amber-700 dark:text-amber-400 pt-0.5">
+                  Victim-evidence overlap: {coherenceCheck.victim_evidence_similarity.toFixed(4)} (Threshold: 0.10)
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
+      {/* ── Low Confidence / Close Ranking Warning (Requirement 5) ───────── */}
       {hasLowConfidence && (
-        <IntelAlert severity="warning" icon={AlertTriangle} title="Low Confidence Ranking">
-          The top two suspects — <strong>{report[0].name}</strong> ({report[0].final_score.toFixed(4)}) and{' '}
-          <strong>{report[1].name}</strong> ({report[1].final_score.toFixed(4)}) — are very closely scored
-          (gap: <strong className="font-mono">{scoreGap.toFixed(4)}</strong>). Independent investigative
-          corroboration of both is strongly recommended before drawing conclusions.
-        </IntelAlert>
+        <div className="bg-rose-50 dark:bg-rose-950/40 border-l-4 border-rose-500 border border-rose-200 dark:border-rose-900/60 rounded-xl p-4 mb-4 text-xs shadow-xs fade-in">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 flex-shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <div className="font-bold text-rose-900 dark:text-rose-200 text-xs flex items-center gap-2">
+                <span>LOW CONFIDENCE</span>
+                <span className="font-mono text-[10px] font-semibold px-1.5 py-0.5 rounded bg-rose-200 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200">
+                  Gap: Δ {scoreGap.toFixed(4)}
+                </span>
+              </div>
+              <p className="text-rose-800 dark:text-rose-300 text-xs leading-relaxed m-0">
+                The top suspects ({report[0]?.name} and {report[1]?.name}) have very similar scores. Additional investigation is recommended before drawing conclusions.
+              </p>
+            </div>
+          </div>
+        </div>
       )}
 
-      {hasModerateConfidence && (
-        <IntelAlert severity="moderate" icon={HelpCircle} title="Moderate Confidence">
-          Score gap between top two suspects is <strong className="font-mono">{scoreGap.toFixed(4)}</strong>.
-          Consider investigating both suspects before focusing solely on the primary lead.
-        </IntelAlert>
+      {/* ── Moderate Confidence Notice ───────────────────────────────────── */}
+      {hasModerateConfidence && !hasLowConfidence && (
+        <div className="bg-amber-50 dark:bg-amber-950/30 border-l-4 border-amber-400 border border-amber-200 dark:border-amber-900/50 rounded-xl p-3.5 mb-4 text-xs shadow-xs fade-in">
+          <div className="flex items-start gap-3">
+            <HelpCircle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <div className="font-bold text-amber-900 dark:text-amber-200 text-xs">
+                Moderate confidence ranking
+              </div>
+              <p className="text-amber-800 dark:text-amber-300 text-xs leading-relaxed m-0">
+                Score gap between top two suspects is <strong className="font-mono">{scoreGap.toFixed(4)}</strong>. Consider investigating both suspects before focusing solely on the primary lead.
+              </p>
+            </div>
+          </div>
+        </div>
       )}
+
+      {/* ── Similarity-Based Verification Notice (Requirement 6) ─────────── */}
+      <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-blue-50/80 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 text-xs text-blue-800 dark:text-blue-300 mb-4 font-sans shadow-xs">
+        <Info className="w-4 h-4 text-blue-500 flex-shrink-0" />
+        <div>
+          <strong>Similarity-based result — requires investigator verification:</strong>{' '}
+          High textual similarity does not necessarily mean confirmed involvement. Scores represent mathematical correlation between suspect profiles and case documents.
+        </div>
+      </div>
 
       {/* ── Suspect Ranking List ──────────────────────────────────────────── */}
       <div className="mb-2">
@@ -519,33 +565,35 @@ const Results = () => {
         </div>
       </div>
 
-      {/* ── Optional Sentence-BERT Comparison ─────────────────────────────── */}
+      {/* ── Model Agreement (TF-IDF Primary vs Sentence-BERT Secondary) ──── */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs mb-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
           <div>
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 m-0">
+            <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-indigo-500" />
-              Sentence-BERT Semantic Comparison
-            </h3>
+              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wide font-mono m-0">
+                Model Agreement
+              </h3>
+            </div>
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-              Deep semantic similarity model (all-MiniLM-L6-v2) alongside TF-IDF primary scores.
+              Primary TF-IDF lexical ranking cross-referenced with Sentence-BERT (all-MiniLM-L6-v2) semantic embeddings.
             </p>
           </div>
           <button
             onClick={handleToggleSbert}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all cursor-pointer"
           >
             <Fingerprint className="w-3.5 h-3.5" />
-            {showSbert ? 'Hide SBERT Comparison' : 'Compare with Sentence-BERT'}
+            {showSbert ? 'Collapse Comparison' : 'Show Model Agreement'}
           </button>
         </div>
 
         {showSbert && (
-          <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
             {sbertLoading ? (
               <div className="flex items-center justify-center py-8 gap-3 text-xs text-indigo-600 dark:text-indigo-400 font-semibold">
                 <div className="w-5 h-5 rounded-full border-2 border-indigo-200 dark:border-indigo-800 border-t-indigo-600 spinner"></div>
-                Calculating semantic embeddings...
+                Computing Sentence-BERT semantic similarity embeddings...
               </div>
             ) : sbertError ? (
               <div className="p-4 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/60 rounded-xl text-xs text-rose-700 dark:text-rose-300 font-medium">
@@ -556,67 +604,165 @@ const Results = () => {
                 No comparison data available.
               </div>
             ) : (() => {
-              const top4Tfidf = [...sbertData]
-                .sort((a, b) => (a.tfidf_rank ?? 99) - (b.tfidf_rank ?? 99))
-                .slice(0, 4)
-                .map(x => x.name);
-              const top4Sbert = [...sbertData]
-                .sort((a, b) => (a.sbert_rank ?? 99) - (b.sbert_rank ?? 99))
-                .slice(0, 4)
-                .map(x => x.name);
-              const matchCount = top4Tfidf.filter(n => top4Sbert.includes(n)).length;
               const cap = Math.min(4, sbertData.length);
+              const top4TfidfList = [...sbertData]
+                .sort((a, b) => (a.tfidf_rank ?? 99) - (b.tfidf_rank ?? 99))
+                .slice(0, cap);
+              const top4SbertList = [...sbertData]
+                .sort((a, b) => (a.sbert_rank ?? 99) - (b.sbert_rank ?? 99))
+                .slice(0, cap);
+
+              const top4TfidfNames = top4TfidfList.map(x => x.name);
+              const top4SbertNames = top4SbertList.map(x => x.name);
+              const matchCount = top4TfidfNames.filter(n => top4SbertNames.includes(n)).length;
               const allMatch = matchCount === cap && cap > 0;
+
               return (
-                <>
-                  <div className={`mb-3 px-4 py-2.5 rounded-lg text-xs font-medium flex items-center gap-2 border ${
+                <div className="space-y-4">
+                  {/* Agreement Summary Banner */}
+                  <div className={`px-4 py-3 rounded-xl border flex flex-wrap items-center justify-between gap-3 text-xs ${
                     allMatch
-                      ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900/60'
-                      : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-900/60'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 border-emerald-200 dark:border-emerald-900/60'
+                      : 'bg-indigo-50/80 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200 border-indigo-200 dark:border-indigo-900/60'
                   }`}>
-                    <span>{allMatch ? '✓' : '⚠'}</span>
-                    {allMatch
-                      ? `Top ${cap} suspects match exactly between TF-IDF and SBERT rankings`
-                      : `${matchCount} of top ${cap} suspects match between TF-IDF and SBERT rankings`}
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-bold text-sm bg-white dark:bg-slate-800 px-2 py-0.5 rounded shadow-2xs">
+                        {matchCount} / {cap}
+                      </span>
+                      <span className="font-medium">
+                        top suspects overlap between TF-IDF primary and Sentence-BERT secondary rankings
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] font-mono">
+                      <span className="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200 font-bold">
+                        TF-IDF: PRIMARY
+                      </span>
+                      <span className="px-2 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/60 text-indigo-800 dark:text-indigo-200 font-bold">
+                        SBERT: SECONDARY
+                      </span>
+                    </div>
                   </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse text-left">
-                      <thead>
-                        <tr className="bg-slate-50 dark:bg-slate-800/70 border-b border-slate-200 dark:border-slate-700 text-[11px] font-mono font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                          <th className="px-4 py-2.5">Suspect Name</th>
-                          <th className="px-4 py-2.5">TF-IDF Score</th>
-                          <th className="px-4 py-2.5">SBERT Score</th>
-                          <th className="px-4 py-2.5">Rank Change</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-mono">
-                        {sbertData.map((item, idx) => {
-                          const rc = item.rank_change ?? 0;
-                          const tRank = item.tfidf_rank ?? '—';
-                          const sRank = item.sbert_rank ?? '—';
-                          let rankIndicator;
-                          if (rc > 0) {
-                            rankIndicator = <span className="text-emerald-600 dark:text-emerald-400 font-bold">↑{rc}</span>;
-                          } else if (rc < 0) {
-                            rankIndicator = <span className="text-rose-500 dark:text-rose-400 font-bold">↓{Math.abs(rc)}</span>;
-                          } else {
-                            rankIndicator = <span className="text-slate-400">—</span>;
-                          }
-                          return (
-                            <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                              <td className="px-4 py-2.5 font-sans font-semibold text-slate-800 dark:text-slate-100">{item.name}</td>
-                              <td className="px-4 py-2.5 text-slate-600 dark:text-slate-300">{Number(item.tfidf_score).toFixed(4)}</td>
-                              <td className="px-4 py-2.5 font-bold text-indigo-600 dark:text-indigo-400">{Number(item.sbert_score).toFixed(4)}</td>
-                              <td className="px-4 py-2.5 whitespace-nowrap text-slate-600 dark:text-slate-300">
-                                #{tRank} → #{sRank} {rankIndicator}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+
+                  {/* Side-by-Side Top Suspects Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* TF-IDF Column */}
+                    <div className="rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/30 dark:bg-blue-950/20 p-4">
+                      <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300 mb-3 flex items-center justify-between">
+                        <span>TF-IDF ranking (Primary)</span>
+                        <span className="text-[10px] bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded font-normal">
+                          Official Case Order
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        {top4TfidfList.map((item, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center justify-between text-xs bg-white dark:bg-slate-800 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 shadow-2xs"
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span className="w-6 h-6 rounded-md bg-blue-600 text-white font-mono font-bold text-[11px] flex items-center justify-center flex-shrink-0">
+                                #{item.tfidf_rank}
+                              </span>
+                              <span className="font-semibold text-slate-800 dark:text-slate-100 truncate">
+                                {item.name}
+                              </span>
+                            </div>
+                            <span className="font-mono text-blue-600 dark:text-blue-400 font-bold ml-2">
+                              {Number(item.tfidf_score).toFixed(4)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* SBERT Column */}
+                    <div className="rounded-xl border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/30 dark:bg-indigo-950/20 p-4">
+                      <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-300 mb-3 flex items-center justify-between">
+                        <span>SBERT ranking (Secondary)</span>
+                        <span className="text-[10px] bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded font-normal">
+                          Semantic Order
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        {top4SbertList.map((item, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center justify-between text-xs bg-white dark:bg-slate-800 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 shadow-2xs"
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span className="w-6 h-6 rounded-md bg-indigo-600 text-white font-mono font-bold text-[11px] flex items-center justify-center flex-shrink-0">
+                                #{item.sbert_rank}
+                              </span>
+                              <span className="font-semibold text-slate-800 dark:text-slate-100 truncate">
+                                {item.name}
+                              </span>
+                            </div>
+                            <span className="font-mono text-indigo-600 dark:text-indigo-400 font-bold ml-2">
+                              {Number(item.sbert_score).toFixed(4)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                </>
+
+                  {/* Complete Cross-Model Comparison Table */}
+                  <div>
+                    <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+                      Full suspect model comparison matrix
+                    </div>
+                    <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+                      <table className="w-full border-collapse text-left">
+                        <thead>
+                          <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                            <th className="px-3.5 py-2.5">Suspect Name</th>
+                            <th className="px-3.5 py-2.5 text-right">TF-IDF (Primary)</th>
+                            <th className="px-3.5 py-2.5 text-right">SBERT (Secondary)</th>
+                            <th className="px-3.5 py-2.5 text-center">Rank Progression</th>
+                            <th className="px-3.5 py-2.5 text-center">Shift</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-mono">
+                          {sbertData.map((item, idx) => {
+                            const rc = item.rank_change ?? 0;
+                            const tRank = item.tfidf_rank ?? '—';
+                            const sRank = item.sbert_rank ?? '—';
+                            return (
+                              <tr key={idx} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                                <td className="px-3.5 py-2.5 font-sans font-semibold text-slate-800 dark:text-slate-100">
+                                  {item.name}
+                                </td>
+                                <td className="px-3.5 py-2.5 text-right text-blue-600 dark:text-blue-400 font-bold">
+                                  {Number(item.tfidf_score).toFixed(4)}
+                                </td>
+                                <td className="px-3.5 py-2.5 text-right font-bold text-indigo-600 dark:text-indigo-400">
+                                  {Number(item.sbert_score).toFixed(4)}
+                                </td>
+                                <td className="px-3.5 py-2.5 text-center text-slate-600 dark:text-slate-300">
+                                  #{tRank} → #{sRank}
+                                </td>
+                                <td className="px-3.5 py-2.5 text-center">
+                                  {rc > 0 ? (
+                                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">↑{rc}</span>
+                                  ) : rc < 0 ? (
+                                    <span className="text-rose-500 dark:text-rose-400 font-bold">↓{Math.abs(rc)}</span>
+                                  ) : (
+                                    <span className="text-slate-400">—</span>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Model Agreement Explanation Note */}
+                  <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-sans">
+                    <strong>Model Agreement Methodology:</strong> TF-IDF is the primary deterministic ranking based on case-specific keyword frequencies and heuristic weights. Sentence-BERT acts purely as an independent secondary semantic comparison layer to highlight suspects whose narrative matches conceptually even when phrasing differs. Primary rankings and scores remain unaltered.
+                  </div>
+                </div>
               );
             })()}
           </div>

@@ -92,37 +92,37 @@ const Dashboard = () => {
     {
       name: 'Physical assault',
       weights: [0.75, 0.35, 0.25, 0.35],
-      tip: 'High weight on forensic & physical evidence. Suitable for violent confrontations.'
+      tip: 'High weight on evidence-text similarity. Suitable for violent confrontations.'
     },
     {
       name: 'Murder',
       weights: [0.80, 0.10, 0.45, 0.25],
-      tip: 'Calibrated against graded relevance labels. Prioritises forensic traces with strong alibi penalty.'
+      tip: 'Calibrated against graded relevance labels. Prioritises evidence document overlap with strong alibi penalty.'
     },
     {
       name: 'Financial fraud',
       weights: [0.20, 0.40, 0.55, 0.20],
-      tip: 'Emphasises past record and financial conflict. Ideal when physical crime scene evidence is minimal.'
+      tip: 'Emphasises past record and financial conflict. Ideal when physical evidence text is minimal.'
     },
     {
       name: 'Kidnapping',
       weights: [0.55, 0.50, 0.30, 0.40],
-      tip: 'Balances physical evidence with eyewitness sightings. Verified alibi heavily clears suspects.'
+      tip: 'Balances evidence similarity with victim/witness testimony. Verified alibi heavily clears suspects.'
     },
     {
       name: 'Drug trafficking',
       weights: [0.65, 0.35, 0.40, 0.25],
-      tip: 'Weighted toward physical contraband seizures, transit logs, and narcotics arrest history.'
+      tip: 'Weighted toward evidence-text logs (contraband, transit) and narcotics arrest history.'
     },
     {
       name: 'Harassment',
       weights: [0.25, 0.55, 0.40, 0.20],
-      tip: 'Prioritises witness accounts, victim interaction logs, and repeat conflict patterns.'
+      tip: 'Prioritises victim/witness similarity, interaction logs, and repeat conflict patterns.'
     },
     {
       name: 'Cybercrime',
       weights: [0.50, 0.20, 0.45, 0.10],
-      tip: 'Digital forensics (IP logs, device artifacts). Physical presence alibis carry minimal relevance.'
+      tip: 'Digital evidence text (IP logs, device artifacts). Physical presence alibis carry minimal relevance.'
     }
   ];
 
@@ -344,39 +344,44 @@ const Dashboard = () => {
           <div className="flex items-center gap-2">
             <Cpu className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 font-mono">
-              Investigation Analysis Pipeline
+              Investigation Workflow Pipeline
             </span>
           </div>
           <span className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">
-            TF-IDF + Cosine Similarity Core
+            TF-IDF Primary + SBERT Secondary Comparison
           </span>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-left">
+        {/* 5-Step Visual Workflow */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 text-left">
           {[
-            { step: '01', name: 'Document Ingestion', desc: 'Victim, Evidence & Suspects', icon: FolderOpen, active: true },
-            { step: '02', name: 'Evidence Processing', desc: 'Tokenization & Stopwords', icon: Cpu, active: false },
-            { step: '03', name: 'Suspect Analysis', desc: 'Vectorization & Alibi Check', icon: Binary, active: false },
-            { step: '04', name: 'Ranking & Report', desc: 'Guilt Score & Intelligence', icon: Award, active: false }
-          ].map((item, i) => {
+            { step: '01', name: 'Documents', desc: 'Victim, Evidence & Suspects', icon: FolderOpen, active: true },
+            { step: '02', name: 'Text Processing', desc: 'Tokenization & Cleaning', icon: Cpu, active: false },
+            { step: '03', name: 'Evidence Analysis', desc: 'TF-IDF Vector Similarity', icon: Binary, active: false },
+            { step: '04', name: 'Suspect Ranking', desc: 'Weighted Heuristics & Alibi', icon: Award, active: false },
+            { step: '05', name: 'Investigation Report', desc: 'Ranked Leads & Model Agreement', icon: FileText, active: false }
+          ].map((item, i, arr) => {
             const StepIcon = item.icon;
             return (
               <div
                 key={i}
-                className={`p-3 rounded-lg border transition-all ${
+                className={`relative p-3 rounded-lg border transition-all ${
                   item.active
-                    ? 'bg-blue-50/70 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900/60'
-                    : 'bg-slate-50/50 dark:bg-slate-800/30 border-slate-200/70 dark:border-slate-800/60 opacity-80'
+                    ? 'bg-blue-50/80 dark:bg-blue-950/50 border-blue-300 dark:border-blue-800 shadow-xs'
+                    : 'bg-slate-50/50 dark:bg-slate-800/30 border-slate-200/70 dark:border-slate-800/60 opacity-85'
                 }`}
               >
                 <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 dark:text-slate-500 mb-1">
-                  <span>STEP {item.step}</span>
+                  <span className={item.active ? 'text-blue-600 dark:text-blue-400 font-bold' : ''}>STEP {item.step}</span>
                   <StepIcon className={`w-3.5 h-3.5 ${item.active ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'}`} />
                 </div>
-                <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                  {item.name}
+                <div className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center justify-between">
+                  <span>{item.name}</span>
+                  {i < arr.length - 1 && (
+                    <span className="hidden lg:inline text-slate-300 dark:text-slate-600 font-mono text-xs">→</span>
+                  )}
                 </div>
-                <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
                   {item.desc}
                 </div>
               </div>
@@ -449,7 +454,7 @@ const Dashboard = () => {
                   <UploadCard
                     docNumber={1}
                     title="Victim & Incident Details"
-                    subtitle="Victim profile, discovery state, date/time, crime scene observations"
+                    subtitle="Victim profile, incident timeline, scene observations, and background circumstances"
                     icon={ShieldAlert}
                     color="blue"
                     file={victimFile}
@@ -460,8 +465,8 @@ const Dashboard = () => {
 
                   <UploadCard
                     docNumber={2}
-                    title="Forensic & Physical Evidence"
-                    subtitle="Fingerprints, CCTV logs, weapon reports, forensic items recovered"
+                    title="Evidence-Text Description"
+                    subtitle="Textual descriptions of recovered evidence, forensic logs, CCTV summaries, and weapon notes"
                     icon={Fingerprint}
                     color="emerald"
                     file={evidenceFile}
@@ -473,7 +478,7 @@ const Dashboard = () => {
                   <UploadCard
                     docNumber={3}
                     title="Suspect Profiles & Alibis"
-                    subtitle="Profiles formatted with 'SUSPECT: Name', prior history & verified alibis"
+                    subtitle="Profiles formatted with 'SUSPECT: Name', background notes, prior record keywords, and alibi claims"
                     icon={Users}
                     color="indigo"
                     file={suspectsFile}
@@ -576,32 +581,32 @@ No direct weapon or fingerprint correlation at scene.`}
                       id: 'w_physical',
                       val: wPhysical,
                       setVal: setWPhysical,
-                      label: 'Physical Evidence Weight',
-                      tag: 'Forensics / CCTV / Weapons',
-                      desc: 'Similarity of suspect profile to physical seized items and crime scene trace evidence.'
+                      label: 'Evidence-Text Similarity Weight',
+                      tag: 'Evidence Document Overlap',
+                      desc: 'Cosine similarity weight between suspect profile and evidence document text.'
                     },
                     {
                       id: 'w_witness',
                       val: wWitness,
                       setVal: setWWitness,
-                      label: 'Witness Statements Weight',
-                      tag: 'Testimony / Victim Link',
-                      desc: 'Correlation with eyewitness reports, victim grievances, and relationship history.'
+                      label: 'Victim / Witness Similarity Weight',
+                      tag: 'Victim/Witness Document Overlap',
+                      desc: 'Cosine similarity weight between suspect profile and victim/incident narrative.'
                     },
                     {
                       id: 'w_history',
                       val: wHistory,
                       setVal: setWHistory,
                       label: 'Past Criminal History Weight',
-                      tag: 'Prior Records / MO',
-                      desc: 'Weight given to prior criminal record, identical modus operandi, and repeat offenses.'
+                      tag: 'Prior Records / MO Keywords',
+                      desc: 'Weight given to detected keywords of prior criminal record, modus operandi, and repeat conflict.'
                     },
                     {
                       id: 'w_alibi',
                       val: wAlibi,
                       setVal: setWAlibi,
-                      label: 'Alibi Exoneration Penalty',
-                      tag: 'Score Deduction',
+                      label: 'Alibi Verification Penalty',
+                      tag: 'Score Deduction for Alibis',
                       desc: 'Magnitude of penalty subtracted from final score when verified alibis are corroborated.'
                     }
                   ].map((slider) => (
@@ -685,9 +690,9 @@ No direct weapon or fingerprint correlation at scene.`}
             <div className="space-y-3">
               {[
                 { step: '1', title: 'Text Preprocessing', desc: 'Case narratives are tokenized, normalized, and cleared of legal and general stopwords.' },
-                { step: '2', title: 'TF-IDF Matrix Creation', desc: 'Terms are weighted to spotlight unique physical and witness correlations.' },
-                { step: '3', title: 'Cosine Similarity', desc: 'Mathematical distance between suspect profiles and evidence files is computed.' },
-                { step: '4', title: 'Weighted Guilt Scoring', desc: 'Weights and alibi penalties compute the calibrated guilt likelihood.' }
+                { step: '2', title: 'TF-IDF Matrix Creation', desc: 'Terms are weighted to spotlight unique evidence-text and victim/witness correlations.' },
+                { step: '3', title: 'Cosine Similarity', desc: 'Mathematical cosine similarity between suspect profiles and case document texts is computed.' },
+                { step: '4', title: 'Weighted Suspect Ranking', desc: 'Weights and alibi penalties compute the calibrated similarity score.' }
               ].map((item) => (
                 <div key={item.step} className="flex gap-2.5 items-start">
                   <div className="w-5 h-5 rounded-md bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-[11px] font-bold font-mono flex items-center justify-center flex-shrink-0 mt-0.5">
